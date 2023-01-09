@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "8066794496",
+    "project_id": "emotional-support-robot",
+    "storage_bucket": "emotional-support-robot.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:8066794496:android:2e9f84fc9bff7a7f5844e5",
+        "android_client_info": {
+          "package_name": "com.example.emotionalsupportrobotapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "8066794496-kikk2k59n1o52j6njsddb7lhe3dr9qok.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSrNiRg9Zir5f3jeplppZm3K4SvDgsYfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "8066794496-kikk2k59n1o52j6njsddb7lhe3dr9qok.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

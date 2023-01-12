@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String sender = document.getDocument().getString("sender");
                     // If last entry was added by ROBOT, show loading screen, otherwise, show main screen
-                    if (document.getType().equals(DocumentChange.Type.ADDED)){
+                    if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
                         if(sender.equals(getResources().getString(R.string.androidTag))) {
                             showLoadingScreen();
                         } else {
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                             message.put("sender", getResources().getString(R.string.androidTag));
                             message.put("emotion", emotionString);
                             firebase.collection(getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
-
+                            showLoadingScreen();
                         } else {
                             Log.d("E-S-R", "Error getting documents: ", task.getException());
                         }

@@ -26,8 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
-    private String state;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,22 +45,27 @@ public class MainActivity extends AppCompatActivity {
                     Log.w(TAG, "Listen failed.", e);
                     return;
                 }
+                Log.d("E-S-R", "FIREBASE EVENT");
 
                 QuerySnapshot snapshots = (QuerySnapshot) object;
 
-                DocumentChange lastChange = snapshots.getDocumentChanges().get(snapshots.getDocumentChanges().size()-1);
-                String tag = lastChange.getDocument().getId().split("_")[0];
-                // If last entry was added by ROBOT, show loading screen, otherwise, show main screen
-                if (lastChange.getType().equals(DocumentChange.Type.ADDED)){
-                    if(tag.equals(getResources().getString(R.string.androidTag))) {
-                        showLoadingScreen();
-                    } else {
-                        showMainScreen();
+                if(snapshots.getDocumentChanges().size() != 0){
+                    DocumentChange document = snapshots.getDocumentChanges().get(0);
+                    String tag = document.getDocument().getId().split("_")[0];
+                    String sender = document.getDocument().getString("sender");
+                    // If last entry was added by ROBOT, show loading screen, otherwise, show main screen
+                    if (document.getType().equals(DocumentChange.Type.ADDED)){
+                        if(sender.equals(getResources().getString(R.string.androidTag))) {
+                            showLoadingScreen();
+                        } else {
+                            showMainScreen();
+                        }
                     }
+                    Log.d("E-S-R", "RETRIEVED LATEST ENTRY FROM: " + sender);
+                } else {
+                    showMainScreen();
+
                 }
-
-                Log.d("E-S-R", "RETRIEVED LATEST ENTRY: " + tag);
-
             }
         });
 
@@ -98,24 +102,12 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
 
-                            // Number of entries:
-                            int count = task.getResult().size();
-
-                            // ID for next entry:
-                            String separator;
-
-                            if(count+1 < 10){
-                                separator = "_0";
-                            } else {
-                                separator = "_";
-                            }
-
-                            String newId =  getResources().getString(R.string.androidTag) + separator + (count+1);
-
-                            // New entry:
+                            // New request:
+                            HashMap<String, String> message = new HashMap<String, String>();
                             HashMap<String, String> emotion = new HashMap<String, String>();
-                            emotion.put("emotion", emotionString);
-                            firebase.collection(getResources().getString(R.string.collectionPath)).document(newId).set(emotion);
+                            message.put("sender", getResources().getString(R.string.androidTag));
+                            message.put("emotion", emotionString);
+                            firebase.collection(getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
 
                         } else {
                             Log.d("E-S-R", "Error getting documents: ", task.getException());
@@ -130,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void showLoadingScreen(){
 
-        this.state = "waiting";
         // hide Title, buttonContainer1 and buttonContainer2
         this.findViewById(R.id.Title).setVisibility(View.INVISIBLE);
         this.findViewById(R.id.buttonContainer1).setVisibility(View.INVISIBLE);
@@ -142,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void showMainScreen(){
 
-        this.state = "default";
         // hide LoadingMessage, Spinner
         this.findViewById(R.id.loadingContainer).setVisibility(View.INVISIBLE);
 

@@ -222,6 +222,48 @@ Running the subscriber:
 
 <details>
   <summary>Writing a simple Service and Client</summary>
+
+### The Service Node
+
+A service node performs some action and returns its outcome. Once you created your service file, you have to make it executable: `chmod +x scripts/my_service.py` and then addit to the CMakeLists.txt file:
+
+    catkin_install_python(PROGRAMS scripts/my_service.py
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
   
+Within the `my_service.py` service file, we need to declare our service:
+
+    rospy.init_node('my_service_server') # name of method called in if __name__ == "__main__":
+    s = rospy.Service('my_service', myServiceType, handle_my_service)
+    
+where all requests to `my_service` with the `myServiceType` service type are passed to `handle_my_service` function. More detailed example code can be found [here](http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28python%29). 
   
+### The Client Node
+Once you created your client file, you have to make it executable: `chmod +x scripts/my_client.py` and then addit to the CMakeLists.txt file:
+
+    catkin_install_python(PROGRAMS scripts/my_service.py scripts/my_client.py
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
+
+Instead of the `init_node()` call, we have the following for the client:
+
+    rospy.wait_for_service('my_service')
+    
+The handling of the called service: 
+
+    do_service = rospy.ServiceProxy('my_service', myServiceType)
+
+### Building your nodes
+
+Finally, you have to build your nodes, as always:
+
+    # In your catkin workspace
+    cd ~/catkin_ws
+    catkin_make
+    
+### Running your service
+
+    rosrun my_package my_service_server.py
+    rosrun my_package my_client.py [optArgs]
+
 </details>

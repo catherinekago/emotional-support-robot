@@ -1,0 +1,8 @@
+prefix=/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/devel
+
+Name: mecharm_pi
+Description: Description of mecharm_pi
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: std_msgs actionlib

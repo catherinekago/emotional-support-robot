@@ -1,0 +1,8 @@
+prefix=/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/devel
+
+Name: new_mycobot_320
+Description: Description of new_mycobot_320
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: std_msgs actionlib

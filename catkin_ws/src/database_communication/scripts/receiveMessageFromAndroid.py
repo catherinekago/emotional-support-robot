@@ -45,9 +45,6 @@ def on_snapshot(doc_snapshot, changes, read_time):
 
         callback_done.set()
 
-        # TODO: create new publisher and listener for updating database entr:
-        #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
-
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE");
 
 # Watch the document

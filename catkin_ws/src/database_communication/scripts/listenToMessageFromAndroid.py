@@ -42,14 +42,30 @@ from std_msgs.msg import String
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
 
-def listener():
+    # TODO: execute robot action depending on data.data
+
+    # TODO: once robot interaction has finished, update firestore firebase:
+
+    # Step 1: setup 
+
+    # from firebase_admin import credentials
+    # from firebase_admin import firestore
+
+    # cred = credentials.Certificate("catkin_ws/src/database_communication/scripts/firebase-credentials/emotional-support-robot-firebase-adminsdk-pvqeh-b7cd18640e.json")
+    # app = firebase_admin.initialize_app(cred)
+    # db = firestore.client()
+   
+    # Step 2: call update function
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+
+def listenToMessageFromAndroid():
 
     # In ROS, nodes are uniquely named. If two nodes with the same
     # name are launched, the previous one is kicked off. The
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
-    rospy.init_node('listener', anonymous=True)
+    rospy.init_node('listenToMessageFromAndroid', anonymous=True)
 
     rospy.Subscriber('messageFromAndroid', String, callback)
 
@@ -57,4 +73,4 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
-    listener()
+    listenToMessageFromAndroid()

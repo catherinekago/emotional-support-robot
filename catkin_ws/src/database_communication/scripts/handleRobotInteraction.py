@@ -42,9 +42,9 @@ from std_msgs.msg import String
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
 
-    # TODO: execute robot action depending on data.data
+    # TODO: execute robot action depending on data.data (either emotion, or stop)
 
-    # TODO: once robot interaction has finished, update firestore firebase:
+    # TODO: once robot interaction has started, update firestore firebase:
 
     # Step 1: setup 
 
@@ -57,15 +57,21 @@ def callback(data):
    
     # Step 2: call update function
     #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
-def actOnMessageFromAndroid():
+    # TODO: once robot interaction has ended, update firestore firebase:
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "READY"})
+
+
+def handleRobotInteraction():
 
     # In ROS, nodes are uniquely named. If two nodes with the same
     # name are launched, the previous one is kicked off. The
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
-    rospy.init_node('actOnToMessageFromAndroid', anonymous=True)
+    rospy.init_node('handleRobotInteraction', anonymous=True)
 
     rospy.Subscriber('messageFromAndroid', String, callback)
 
@@ -73,4 +79,4 @@ def actOnMessageFromAndroid():
     rospy.spin()
 
 if __name__ == '__main__':
-    actOnMessageFromAndroid()
+    handleRobotInteraction()

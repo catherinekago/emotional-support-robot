@@ -36,13 +36,13 @@ callback_done = threading.Event()
 def on_snapshot(doc_snapshot, changes, read_time):
     print(f'Received message from: {doc_snapshot[0].get("sender")}')
     sender = doc_snapshot[0].get("sender");
-    emotionFromSnapshot = doc_snapshot[0].get("emotion");
-    print("retrieved emotion ", emotionFromSnapshot)
+    messageFromSnapshot = doc_snapshot[0].get("body");
+    print("retrieved message ", messageFromSnapshot)
 
     if (sender == "ANDROID"):
-        # set global variable to trigger publishing received emotion
-        global emotion
-        emotion = emotionFromSnapshot
+        # set global variable to trigger publishing received message
+        global message
+        message = messageFromSnapshot
 
         callback_done.set()
 
@@ -58,17 +58,17 @@ def receiveMessageFromAndroid():
     rospy.init_node('receiveMessageFromAndroid', anonymous=True)
     rate = rospy.Rate(3) # 1hz
 
-    global emotion
-    emotion = ""
+    global message
+    message = ""
 
     while not rospy.is_shutdown():
         
-        if emotion != "":
-            rospy.loginfo("publishing emotion " + emotion)
-            pub.publish(emotion)
+        if message != "":
+            rospy.loginfo("publishing message " + message)
+            pub.publish(message)
             
             # reset message
-            emotion = ""
+            message = ""
 
         rate.sleep()
 

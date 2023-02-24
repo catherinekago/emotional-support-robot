@@ -22,8 +22,7 @@ import os
 
 
 # Use the private key file of the service account directly.
-## TODO: copy PATH (ABSOLUTE, not relative of the firebase credential file to cred)
-cred = credentials.Certificate("/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/scripts/firebase-credentials/emotional-support-robot-firebase-adminsdk-pvqeh-82d0908a80.json")
+cred = credentials.Certificate("catkin_ws/src/database_communication/scripts/firebase-credentials/emotional-support-robot-firebase-adminsdk-pvqeh-b7cd18640e.json")
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -65,10 +64,10 @@ def receiveMessageFromAndroid():
         
         if emotion != "":
             rospy.loginfo("publishing emotion " + emotion)
-            pub.publish(emotion)
             
             # reset message
             emotion = ""
+            pub.publish(emotion)
 
         rate.sleep()
 

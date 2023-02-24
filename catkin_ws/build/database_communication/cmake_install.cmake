@@ -53,6 +53,6 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/database_communication" TYPE PROGRAM FILES "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/build/database_communication/catkin_generated/installspace/talker.py")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/database_communication" TYPE PROGRAM FILES "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/build/database_communication/catkin_generated/installspace/receiveMessageFromAndroid.py")
 endif()
 

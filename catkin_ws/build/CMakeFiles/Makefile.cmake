@@ -136,7 +136,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/CMakeLists.txt"
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/CMakeLists.txt"
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/package.xml"
-  "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/scripts/talker.py"
+  "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/scripts/receiveMessageFromAndroid.py"
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/mycobot_ros/Mybuddy/mybuddy/CMakeLists.txt"
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/mycobot_ros/Mybuddy/mybuddy/package.xml"
   "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/mycobot_ros/Mybuddy/mybuddy/scripts/follow_display.py"

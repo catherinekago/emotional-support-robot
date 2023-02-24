@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.emotional_support_robot_app.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,11 +28,18 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
+
+    private TextView loadingMessage;
+    private Button stopButton;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        this.loadingMessage = findViewById(R.id.LoadingMessage);
+        loadingMessage.setText(getString(R.string.loading_playing));
+        this.stopButton = findViewById(R.id.buttonStop);
 
         // setup firebase connection
         this.firebase = FirebaseFirestore.getInstance();
@@ -52,16 +61,17 @@ public class MainActivity extends AppCompatActivity {
                 if(snapshots.getDocumentChanges().size() != 0){
                     DocumentChange document = snapshots.getDocumentChanges().get(0);
                     String tag = document.getDocument().getId().split("_")[0];
-                    String sender = document.getDocument().getString("sender");
-                    // If last entry was added by ROBOT, show loading screen, otherwise, show main screen
+                    String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        if(sender.equals(getResources().getString(R.string.androidTag))) {
-                            showLoadingScreen();
+                        Boolean isPlaying = messageBody.equals(getResources().getString(R.string.body_playing));
+                        Boolean isStopping = messageBody.equals(getResources().getString(R.string.body_stop));
+                        if(isPlaying || isStopping) {
+                            showLoadingScreen(messageBody);
                         } else {
                             showMainScreen();
                         }
                     }
-                    Log.d("E-S-R", "RETRIEVED LATEST ENTRY FROM: " + sender);
+                    Log.d("E-S-R", "MESSAGE FROM: " + document.getDocument().getString("sender") + " -- " + messageBody);
                 } else {
                     showMainScreen();
 
@@ -89,6 +99,12 @@ public class MainActivity extends AppCompatActivity {
         pushToFirestore("ANXIOUS");
     }
 
+    // Click listener for stop button
+
+    public void stop(View view){
+        pushToFirestore(getResources().getString(R.string.body_stop));
+    }
+
     //endregion
 
     //region communication with firestore
@@ -104,11 +120,10 @@ public class MainActivity extends AppCompatActivity {
 
                             // New request:
                             HashMap<String, String> message = new HashMap<String, String>();
-                            HashMap<String, String> emotion = new HashMap<String, String>();
-                            message.put("sender", getResources().getString(R.string.androidTag));
-                            message.put("emotion", emotionString);
+                            message.put("sender", getResources().getString(R.string.sender_android));
+                            message.put("body", emotionString);
                             firebase.collection(getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
-                            showLoadingScreen();
+                            showLoadingScreen(getResources().getString(R.string.body_playing));
                         } else {
                             Log.d("E-S-R", "Error getting documents: ", task.getException());
                         }
@@ -120,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
     //region adjust displayed content in activity
 
-    private void showLoadingScreen(){
+    private void showLoadingScreen(String state){
 
         // hide Title, buttonContainer1 and buttonContainer2
         this.findViewById(R.id.Title).setVisibility(View.INVISIBLE);
@@ -129,6 +144,15 @@ public class MainActivity extends AppCompatActivity {
 
         // show LoadingMessage, Spinner
         this.findViewById(R.id.loadingContainer).setVisibility(View.VISIBLE);
+
+        if (state.equals(getResources().getString(R.string.body_playing))){
+            loadingMessage.setText(getString(R.string.loading_playing));
+            stopButton.setVisibility(View.VISIBLE);
+        } else {
+            loadingMessage.setText(getString(R.string.loading_stop));
+            stopButton.setVisibility(View.INVISIBLE);
+        }
+
     }
 
     private void showMainScreen(){

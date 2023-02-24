@@ -31,22 +31,23 @@
         >
 
         <Button
-            android:id="@+id/buttonHappy"
+            android:id="@+id/buttonAnxious"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
             android:layout_marginRight="24dp"
             android:layout_weight="1"
-            android:text="Happy"
-            android:onClick="selectHappy"/>
+            android:text="Anxious"
+            android:onClick="selectAnxious"/>
 
         <Button
-            android:id="@+id/buttonSad"
+            android:id="@+id/buttonHappy"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
             android:layout_weight="1"
-            android:text="Sad"
-            android:onClick="selectSad"
-            />
+            android:onClick="selectHappy"
+            android:text="Happy" />
+
+
     </LinearLayout>
 
     <LinearLayout
@@ -64,16 +65,19 @@
             android:layout_height="150dp"
             android:layout_weight="1"
             android:text="Angry"
+            android:enabled="false"
             android:layout_marginRight="24dp"
             android:onClick="selectAngry"/>
 
         <Button
-            android:id="@+id/buttonAnxious"
+            android:id="@+id/buttonSad"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
             android:layout_weight="1"
-            android:text="Anxious"
-            android:onClick="selectAnxious"/>
+            android:enabled="false"
+            android:text="Sad"
+            android:onClick="selectSad"
+            />
     </LinearLayout>
 
     <LinearLayout
@@ -90,7 +94,7 @@
         android:layout_width="match_parent"
         android:textAlignment="center"
         android:layout_height="wrap_content"
-        android:text="Emotional Support Robot in action 🤖"
+        android:text="@string/loading_playing"
         android:textColor="#000000"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -107,6 +111,14 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/LoadingMessage"
         android:layout_marginTop="80dp"/>
+
+        <Button
+            android:id="@+id/buttonStop"
+            android:layout_width="fill_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="200dp"
+            android:onClick="stop"
+            android:text="STOP" />
     </LinearLayout>
 
 

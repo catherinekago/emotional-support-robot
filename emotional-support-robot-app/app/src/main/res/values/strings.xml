@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Emotional Support Robot App</string>
     <string name="collectionPath">android-robot-communication</string>
-    <string name="androidTag">ANDROID</string>
-    <string name="robotTag">ROBOT</string>
+    <string name="sender_android">ANDROID</string>
+    <string name="sender_robot">ROBOT</string>
+    <string name="body_ready">READY</string>
+    <string name="body_playing">PLAYING</string>
+    <string name="body_stop">STOP</string>
+
+    <string name="loading_playing">Emotional Support Robot in action 🤖</string>
+    <string name="loading_stop">Stopping the robot ...</string>
 </resources>

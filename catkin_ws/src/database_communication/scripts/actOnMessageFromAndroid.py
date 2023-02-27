@@ -39,10 +39,27 @@
 import rospy
 from std_msgs.msg import String
 
+# Import mycobot stuff
+from pymycobot import MyCobot
+from pymycobot.genre import Angle
+from pymycobot import PI_PORT, PI_BAUD  # When using the Raspberry Pi version of mycobot, you can refer to these two variables to initialize MyCobot
+import time
+
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
 
     # TODO: execute robot action depending on data.data
+    
+    # Initiate a MyCobot object
+    # TODO: if there is an error, try ttyACM0
+    mc = MyCobot('/dev/ttyACM1', 115200)
+
+    #By passing the angle parameter, let each joint of the robotic arm move to the position corresponding to [0, 0, 0, 0, 0, 0]
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+    time.sleep(2.5)
+
+    # Move joint 1 to the 90 position
+    # mc.send_angle(Angle.J1.value, 90, 50)
 
     # TODO: once robot interaction has finished, update firestore firebase:
 

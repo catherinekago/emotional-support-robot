@@ -6,10 +6,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.emotional_support_robot_app.R;
@@ -26,12 +31,11 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
 
+    private TextView loadingMessage;
+    private Button stopButton;
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
 
-    private TextView loadingMessage;
-    private Button stopButton;
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
         loadingMessage.setText(getString(R.string.loading_playing));
         this.stopButton = findViewById(R.id.buttonStop);
 
+        setUpFirestore();
+
+
+    }
+
+    private void setUpFirestore() {
         // setup firebase connection
         this.firebase = FirebaseFirestore.getInstance();
         this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
@@ -63,9 +73,10 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        Boolean isPlaying = messageBody.equals(getResources().getString(R.string.body_playing));
-                        Boolean isStopping = messageBody.equals(getResources().getString(R.string.body_stop));
-                        if(isPlaying || isStopping) {
+                        Boolean isReady = messageBody.equals(getResources().getString(R.string.body_ready));
+                        Boolean isHappy = messageBody.equals("HAPPY");
+                        // show waiting screen for all emotions and state except for ready (robot idle mode) and happy (where app displays specific content)
+                        if(!(isReady || isHappy)) {
                             showLoadingScreen(messageBody);
                         } else {
                             showMainScreen();
@@ -78,64 +89,52 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     //region on click listeners for each button
 
+    @SuppressLint("ResourceAsColor")
     public void selectHappy(View view){
-        pushToFirestore("HAPPY");
+        Intent switchActivityIntent = new Intent(this, HappyActivity.class);
+        startActivity(switchActivityIntent);
     }
 
+    @SuppressLint("ResourceAsColor")
     public void selectSad(View view){
-        pushToFirestore("SAD");
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, "SAD");
+        showLoadingScreen(getResources().getString(R.string.body_playing));
     }
 
+    @SuppressLint("ResourceAsColor")
     public void selectAngry(View view){
-        pushToFirestore("ANGRY");
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, "ANGRY");
+        findViewById(R.id.Spinner).setBackgroundColor(R.color.angry);
+        showLoadingScreen(getResources().getString(R.string.body_playing));
     }
 
+    @SuppressLint({"ResourceAsColor", "ResourceType"})
     public void selectAnxious(View view){
-        pushToFirestore("ANXIOUS");
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, "ANXIOUS");
+        showLoadingScreen(getResources().getString(R.string.body_playing));
     }
 
     // Click listener for stop button
 
     public void stop(View view){
-        pushToFirestore(getResources().getString(R.string.body_stop));
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, "STOP");
+        showLoadingScreen(getResources().getString(R.string.body_stop));
+
+        if (MediaPlayer.mediaPlayer.isPlaying()){
+            MediaPlayer.stopSong();
+        }
     }
-
-    //endregion
-
-    //region communication with firestore
-
-    private void pushToFirestore(String emotionString){
-
-        collectionRef
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-
-                            // New request:
-                            HashMap<String, String> message = new HashMap<String, String>();
-                            message.put("sender", getResources().getString(R.string.sender_android));
-                            message.put("body", emotionString);
-                            firebase.collection(getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
-                            showLoadingScreen(getResources().getString(R.string.body_playing));
-                        } else {
-                            Log.d("E-S-R", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-    };
 
     //endregion
 
     //region adjust displayed content in activity
 
-    private void showLoadingScreen(String state){
+    @SuppressLint("ResourceType")
+    void showLoadingScreen(String state) {
 
         // hide Title, buttonContainer1 and buttonContainer2
         this.findViewById(R.id.Title).setVisibility(View.INVISIBLE);
@@ -145,17 +144,19 @@ public class MainActivity extends AppCompatActivity {
         // show LoadingMessage, Spinner
         this.findViewById(R.id.loadingContainer).setVisibility(View.VISIBLE);
 
-        if (state.equals(getResources().getString(R.string.body_playing))){
-            loadingMessage.setText(getString(R.string.loading_playing));
-            stopButton.setVisibility(View.VISIBLE);
-        } else {
+        if (state.equals(getResources().getString(R.string.body_stop))) {
             loadingMessage.setText(getString(R.string.loading_stop));
+            this.findViewById(R.id.Spinner).setVisibility(View.VISIBLE);
             stopButton.setVisibility(View.INVISIBLE);
-        }
+        } else {
+            loadingMessage.setText(getString(R.string.loading_playing));
+            this.findViewById(R.id.Spinner).setVisibility(View.GONE);
+            stopButton.setVisibility(View.VISIBLE);
 
+        }
     }
 
-    private void showMainScreen(){
+    void showMainScreen(){
 
         // hide LoadingMessage, Spinner
         this.findViewById(R.id.loadingContainer).setVisibility(View.INVISIBLE);
@@ -167,4 +168,5 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //endregion
+
 }

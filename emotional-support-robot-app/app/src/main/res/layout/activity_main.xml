@@ -32,20 +32,23 @@
 
         <Button
             android:id="@+id/buttonAnxious"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:layout_marginRight="24dp"
+            android:layout_marginRight="12dp"
             android:layout_weight="1"
-            android:text="Anxious"
+            android:text="😨"
+            android:textSize="60dp"
             android:onClick="selectAnxious"/>
 
         <Button
             android:id="@+id/buttonHappy"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="150dp"
+            android:layout_marginLeft="12dp"
             android:layout_weight="1"
             android:onClick="selectHappy"
-            android:text="Happy" />
+            android:textSize="60dp"
+            android:text="🤩" />
 
 
     </LinearLayout>
@@ -61,21 +64,24 @@
 
         <Button
             android:id="@+id/buttonAngry"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="150dp"
             android:layout_weight="1"
-            android:text="Angry"
+            android:text="😠"
+            android:textSize="60dp"
             android:enabled="false"
-            android:layout_marginRight="24dp"
+            android:layout_marginRight="12dp"
             android:onClick="selectAngry"/>
 
         <Button
             android:id="@+id/buttonSad"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="150dp"
+            android:layout_marginLeft="12dp"
             android:layout_weight="1"
             android:enabled="false"
-            android:text="Sad"
+            android:text="🥺"
+            android:textSize="60dp"
             android:onClick="selectSad"
             />
     </LinearLayout>
@@ -107,6 +113,7 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/LoadingMessage"

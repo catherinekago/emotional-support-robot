@@ -4,6 +4,7 @@
 #!/usr/bin/env python3
 import rospy
 from std_msgs.msg import String
+from pymycobot import MyCobot
 
 # Step 1 Add Firebase Admin SDK to python app in terminal
 # If you have pip in your PATH environment variable: pip install --upgrade firebase-admin 
@@ -34,15 +35,32 @@ callback_done = threading.Event()
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
+
+
+    # THIS IS FOR TESTING ROBOT CODE (should be moved to actOnMessageFromAndroid eventually)
+
+    # Initiate a MyCobot object
+    # TODO: if there is an error, try ttyACM0
+    mc = MyCobot('/dev/ttyACM1', 115200)
+
+    #By passing the angle parameter, let each joint of the robotic arm move to the position corresponding to [0, 0, 0, 0, 0, 0]
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+    time.sleep(2.5)
+    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
+
+    # ENDO OF TESTING ROBOT CODE 
+
+
+
     print(f'Received message from: {doc_snapshot[0].get("sender")}')
     sender = doc_snapshot[0].get("sender");
-    messageFromSnapshot = doc_snapshot[0].get("body");
-    print("retrieved message ", messageFromSnapshot)
+    bodyFromSnapshot = doc_snapshot[0].get("body");
+    print("retrieved body ", bodyFromSnapshot)
 
     if (sender == "ANDROID"):
-        # set global variable to trigger publishing received message
-        global message
-        message = messageFromSnapshot
+        # set global variable to trigger publishing received emotion
+        global body
+        body = bodyFromSnapshot
 
         callback_done.set()
 
@@ -58,17 +76,17 @@ def receiveMessageFromAndroid():
     rospy.init_node('receiveMessageFromAndroid', anonymous=True)
     rate = rospy.Rate(3) # 1hz
 
-    global message
-    message = ""
+    global body
+    body = ""
 
     while not rospy.is_shutdown():
         
-        if message != "":
-            rospy.loginfo("publishing message " + message)
-            pub.publish(message)
+        if body != "":
+            rospy.loginfo("publishing emotion " + body)
+            pub.publish(body)
             
             # reset message
-            message = ""
+            body = ""
 
         rate.sleep()
 

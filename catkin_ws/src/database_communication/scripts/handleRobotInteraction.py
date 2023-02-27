@@ -39,10 +39,24 @@
 import rospy
 from std_msgs.msg import String
 
+# Import mycobot stuff
+from pymycobot import MyCobot
+from pymycobot.genre import Angle
+import time
+
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
 
-    # TODO: execute robot action depending on data.data (either emotion, or stop)
+    # TODO: execute robot action depending on data.data
+    
+    # Initiate a MyCobot object
+    # TODO: if there is an error, try ttyACM0
+    mc = MyCobot('/dev/ttyACM1', 115200)
+
+    #By passing the angle parameter, let each joint of the robotic arm move to the position corresponding to [0, 0, 0, 0, 0, 0]
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+    time.sleep(2.5)
+    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
 
     # TODO: once robot interaction has started, update firestore firebase:
 

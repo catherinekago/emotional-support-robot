@@ -32,13 +32,12 @@ app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # Initiate a MyCobot object
-# TODO: if there is an error, try ttyACM1
 
-#----Local connection: 
-mc = MyCobot('/dev/ttyACM0', 115200)
+#----Local connection (if there is an error, try ttyACM1): 
+#mc = MyCobot('/dev/ttyACM0', 115200)
 
 #----WIFI:
-#mc = MyCobotSocket("192.168.1.106", 9000)
+mc = MyCobotSocket("192.168.1.106", 9000)
 
 # Create Firebase Firestore listener
 
@@ -49,31 +48,30 @@ callback_done = threading.Event()
 def on_snapshot(doc_snapshot, changes, read_time):
     print("Initialize Robot")
 
-    #idle state == snake
-    mc.set_color(240,240,240)
-    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
-    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
-    time.sleep(4)
-
-    print(f'Received message from: {doc_snapshot[0].get("sender")}')
-    sender = doc_snapshot[0].get("sender")
+    print(doc_snapshot[0])
     bodyFromSnapshot = doc_snapshot[0].get("body")
     print("retrieved body ", bodyFromSnapshot)
 
     # set global variable to trigger publishing received emotion
     global body
     body = bodyFromSnapshot
-    if (body == "WAKEWORD"):
+    if(body == "SNAKE"):
+        print("snakey")
+        #idle state == snake
+        mc.set_color(240,240,240)
+        mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
+    elif (body == "WAKEWORD"):
         print("Body is wakeword")
         wakeWordDetected()
-    elif (body == "HAPPY" | body == "ANXIOUS"):
+    elif (body == "HAPPY_109" or body == "HAPPY_128" or body == "ANXIOUS"):
         emotionDetected(body)
 
     callback_done.set()
 
 def wakeWordDetected():
     #activate robot --> wake word by app
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
+
     # THIS IS FOR TESTING ROBOT CODE (should be moved to actOnMessageFromAndroid eventually)
     print("Robot awakened")
         
@@ -81,8 +79,7 @@ def wakeWordDetected():
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1.1)
     mc.set_color(0,150,255)
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
+    
 
     #listening routine
     #TODO: add more listening signs (tilting the head)
@@ -94,25 +91,23 @@ def wakeWordDetected():
     mc.send_angle(Angle.J5.value, -10, 80)
     time.sleep(4)
 
-    #TODO remove when emotion is received from phone
-    #emotionDetected("ANXIOUS")
-
 def emotionDetected(emotion):
+    print("Received an emotion")
 
     ##active state
     mc.set_color(0,255,0)
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
     #Reaction to emotion initiated here
-    if (emotion == "HAPPY"):
+    #HAPPY_BPM
+    if (emotion == "HAPPY_109" or "HAPPY_128"):
         #TODO Happy Dances
         print("Happy dance")
     elif(emotion == "ANXIOUS"):
         #TODO Breathing exercise
         print("Anxious dancing")
 
-        for i in range(4):
+        for i in range(1):
 
             mc.send_angles([-25, 38, 10, -55, 27, 0], 10)
             time.sleep(4)
@@ -135,7 +130,6 @@ def emotionDetected(emotion):
     ##idle state == snake
     mc.set_color(240,240,240)
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
         
     time.sleep(4)

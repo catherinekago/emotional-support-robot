@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Emotional Support Robot App</string>
+    <string name="app_name">ESRA</string>
     <string name="collectionPath">android-robot-communication</string>
     <string name="sender_android">ANDROID</string>
     <string name="sender_robot">ROBOT</string>
@@ -13,7 +13,6 @@
     <string name="happy_default">What\'s your HAPPY MOOD?</string>
 
     <string name="happy_109_title">Walking on Sunshine</string>
-    <string name="happy_109_url">https://www.youtube.com/embed/qK5KhQG06xU</string>
     <string name="happy_128_title">Sexy and I Know It</string>
-    <string name="happy_128_url">https://www.youtube.com/watch?v=wyx6JDQCslE</string>
+
 </resources>

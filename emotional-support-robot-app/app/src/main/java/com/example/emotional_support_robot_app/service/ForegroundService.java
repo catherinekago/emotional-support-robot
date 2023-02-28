@@ -42,7 +42,6 @@ public class ForegroundService extends Service {
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
 
-    private static final double updateFrequency = 15; // in seconds
     private static final String NOTIFICATION_CHANNEL_ID = "example.permanence";
     private static final String channelName = "Background Service";
 
@@ -67,24 +66,14 @@ public class ForegroundService extends Service {
                     .setKeywordPaths(new String[]{"Hey-Ezra_en_android_v2_1_0.ppn"})
                     .build(getApplicationContext(),
                             (keywordIndex) -> {
-                                // wake word detected!
 
+                                // wake word detected - only react when robot is in snake state
                                 if(Settings.status == StatusMessage.SNAKE){
                                     Settings.status = StatusMessage.WAKEWORD;
+
                                     Log.e("E-S-R", "HEY ESRA");
                                     // post "WAKEWORD" to database
                                     FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
-                                    try {
-                                        TimeUnit.SECONDS.sleep(3);
-                                        if (Settings.status != StatusMessage.AWAKE){
-                                            Settings.status = StatusMessage.SNAKE;
-                                            Log.e("E-S-R", "NO RESPONSE");
-                                            FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
-                                        }
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-
                                 }
 
                             });

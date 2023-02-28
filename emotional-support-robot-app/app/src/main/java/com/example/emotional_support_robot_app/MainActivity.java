@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private Button stopButton;
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
+    private TextView title;
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         //this.stopButton = findViewById(R.id.buttonStop);
         setUpFirestore();
         startService();
+        startSpeechRecognition();
+
 
     }
 
@@ -57,13 +60,20 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.R)
     public void startService() {
             startService(new Intent(this, ForegroundService.class));
-
     }
+
+    private void startSpeechRecognition() {
+        // TODO : activate speech recognizer (own class) once app receives "AWAKE"
+        // https://developer.android.com/training/wearables/user-input/voice
+    }
+
 
     private void setUpFirestore() {
         // setup firebase connection
         this.firebase = FirebaseFirestore.getInstance();
         this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
+
+        this.title = findViewById(R.id.Title);
 
         //setup firebase event listener
         collectionRef.addSnapshotListener(new EventListener() {
@@ -84,11 +94,19 @@ public class MainActivity extends AppCompatActivity {
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
                         Settings.status =StatusMessage.valueOf(messageBody);
 
-                        // TODO : activate speech recognizer (own class) once app receives "AWAKE"
-                        // https://developer.android.com/training/wearables/user-input/voice
-
                         switch (Settings.status){
                             case SNAKE:
+                                title.setText("Say HEY ESRA");
+                                break;
+
+                            case AWAKE:
+                                title.setText("How do you feel? Anxious, happy?");
+                                break;
+
+                            case PLAYING:
+                                title.setText("ESRA in action ...");
+                                break;
+
                         }
                     }
                     Log.d("E-S-R", "MESSAGE FROM: " + document.getDocument().getString("sender") + " -- " + messageBody);

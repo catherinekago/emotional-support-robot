@@ -3,14 +3,10 @@
     <string name="collectionPath">android-robot-communication</string>
     <string name="sender_android">ANDROID</string>
     <string name="sender_robot">ROBOT</string>
-    <string name="body_ready">READY</string>
-    <string name="body_playing">PLAYING</string>
-    <string name="body_stop">STOP</string>
+
 
     <string name="loading_playing">Emotional Support Robot in action 🤖</string>
     <string name="loading_stop">Stopping the robot ...</string>
-
-    <string name="happy_default">What\'s your HAPPY MOOD?</string>
 
     <string name="happy_109_title">Walking on Sunshine</string>
     <string name="happy_128_title">Sexy and I Know It</string>

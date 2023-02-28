@@ -29,7 +29,7 @@ public class FirestoreHandler {
                             message.put("sender", context.getResources().getString(R.string.sender_android));
                             message.put("body", body);
                             firebase.collection(context.getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
-
+                            Log.d("E-S-R   SEND", "ANDROID" + " -- " + body);
                         } else {
                             Log.d("E-S-R", "Error getting documents: ", task.getException());
                         }

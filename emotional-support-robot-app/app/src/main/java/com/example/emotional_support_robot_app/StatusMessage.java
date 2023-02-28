@@ -6,5 +6,8 @@ public enum StatusMessage {
     ANXIOUS,
     PLAYING,
     STOP,
-    SNAKE
+    HAPPY,
+    SNAKE,
+    HAPPY_109,
+    HAPPY_128
 }

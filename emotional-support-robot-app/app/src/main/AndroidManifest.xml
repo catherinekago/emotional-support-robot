@@ -19,9 +19,6 @@
             android:enabled="true"
             android:exported="true" />
         <activity
-            android:name=".HappyActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -34,7 +31,7 @@
 
     <queries>
         <intent>
-            <action android:name="com.google.android.youtube.api.service.START" />
+            <action android:name="android.speech.RecognitionService" />
         </intent>
     </queries>
 

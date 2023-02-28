@@ -46,7 +46,6 @@ public class ForegroundService extends Service {
     private static final String channelName = "Background Service";
 
     private String accessKey = "XtZfmmOD3T09VbD3Y7A/sV8B/gdKarnZQMSWK2YFSlDWIAljYsZNHA=="; // your Picovoice AccessKey
-    private PorcupineManager porcupineManager;
 
     public ForegroundService() {
     }
@@ -60,7 +59,7 @@ public class ForegroundService extends Service {
 
         try {
             // Add own wake word
-            porcupineManager = new PorcupineManager.Builder()
+            Settings.porcupineManager = new PorcupineManager.Builder()
                     .setAccessKey(accessKey)
                     .setSensitivity(0.7f)
                     .setKeywordPaths(new String[]{"Hey-Ezra_en_android_v2_1_0.ppn"})
@@ -77,7 +76,7 @@ public class ForegroundService extends Service {
                                 }
 
                             });
-            porcupineManager.start();
+            Settings.porcupineManager.start();
         } catch (PorcupineException e) {
             Log.e("E-S-R PORCUPINE SERVICE", e.toString());
         }

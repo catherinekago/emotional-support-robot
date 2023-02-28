@@ -5,6 +5,8 @@
 import rospy
 from std_msgs.msg import String
 from pymycobot import MyCobot
+from pymycobot.genre import Angle
+from pymycobot.genre import Coord
 
 # Step 1 Add Firebase Admin SDK to python app in terminal
 # If you have pip in your PATH environment variable: pip install --upgrade firebase-admin 
@@ -28,6 +30,10 @@ cred = credentials.Certificate("/home/ubunutu/Desktop/emotional-support-robot/em
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+# Initiate a MyCobot object
+# TODO: if there is an error, try ttyACM0
+mc = MyCobot('/dev/ttyACM0', 115200)
+
 # Create Firebase Firestore listener
 
 # Create an Event for notifying main thread.
@@ -36,21 +42,11 @@ callback_done = threading.Event()
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
 
-
-    # THIS IS FOR TESTING ROBOT CODE (should be moved to actOnMessageFromAndroid eventually)
-
-    # Initiate a MyCobot object
-    # TODO: if there is an error, try ttyACM0
-    mc = MyCobot('/dev/ttyACM1', 115200)
-
-    #By passing the angle parameter, let each joint of the robotic arm move to the position corresponding to [0, 0, 0, 0, 0, 0]
-    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
-    time.sleep(2.5)
+    #idle state == snake
+    mc.set_color(240,240,240)
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-
-    # ENDO OF TESTING ROBOT CODE 
-
-
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
 
     print(f'Received message from: {doc_snapshot[0].get("sender")}')
     sender = doc_snapshot[0].get("sender");
@@ -61,10 +57,74 @@ def on_snapshot(doc_snapshot, changes, read_time):
         # set global variable to trigger publishing received emotion
         global body
         body = bodyFromSnapshot
-
+        if (body == "WAKEWORD"):
+            print("Body is wakeword")
+            wakeWordDetected()
         callback_done.set()
 
-docs_ref = db.collection(u'android-robot-communication').document("MESSAGE");
+def wakeWordDetected():
+    #activate robot --> wake word by app
+    # THIS IS FOR TESTING ROBOT CODE (should be moved to actOnMessageFromAndroid eventually)
+    print("Robot awakened")
+        
+    ##listening state
+    #TODO why is color not changing? Why is head in wrong position?
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+    time.sleep(1.1)
+    mc.set_color(0,150,255)
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
+
+    #listening routine
+    #TODO: add more listening signs (tilting the head)
+    time.sleep(1)
+    mc.send_angle(Angle.J5.value, -20, 80)
+    time.sleep(0.7)
+    mc.send_angle(Angle.J5.value, 20, 80)
+    time.sleep(0.7)
+    mc.send_angle(Angle.J5.value, -10, 80)
+    time.sleep(4)
+
+    #TODO change emotion here based on detected emotion
+    emotion = "ANXIOUS"
+
+    ##active state
+    mc.set_color(0,255,0)
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+
+    #Reaction to emotion initiated here
+    if (emotion == "HAPPY"):
+        #TODO Happy Dances
+        print("Happy dance")
+    elif(emotion == "ANXIOUS"):
+        #TODO Breathing exercise
+        print("Anxious dancing")
+
+        mc.send_coord(Coord.X.value, -10, 70)
+        time.sleep(2)
+        mc.send_coord(Coord.Y.value, -10, 70)
+        time.sleep(2)
+        mc.send_coord(Coord.X.value, 10, 70)
+        time.sleep(2)
+        mc.send_coord(Coord.Y.value, 10, 70)
+        time.sleep(2)
+
+    else:
+        #TODO Default case?
+        print("Emotion: " + emotion)
+            
+    #TODO: user can interrupt routine
+
+    ##idle state == snake
+    mc.set_color(240,240,240)
+    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+        
+    time.sleep(4)
+
+docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
 # Watch the document
 doc_watch = docs_ref.on_snapshot(on_snapshot)
@@ -82,7 +142,7 @@ def receiveMessageFromAndroid():
     while not rospy.is_shutdown():
         
         if body != "":
-            rospy.loginfo("publishing emotion " + body)
+            rospy.loginfo("publishing body " + body)
             pub.publish(body)
             
             # reset message
@@ -95,3 +155,4 @@ if __name__ == '__main__':
         receiveMessageFromAndroid()
     except rospy.ROSInterruptException:
         pass
+

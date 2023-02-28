@@ -4,12 +4,14 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.emotional_support_robot_app.R;
+import com.example.emotional_support_robot_app.service.ForegroundService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -36,17 +39,24 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.loadingMessage = findViewById(R.id.LoadingMessage);
-        loadingMessage.setText(getString(R.string.loading_playing));
-        this.stopButton = findViewById(R.id.buttonStop);
-
+        //this.loadingMessage = findViewById(R.id.LoadingMessage);
+        //loadingMessage.setText(getString(R.string.loading_playing));
+        //this.stopButton = findViewById(R.id.buttonStop);
         setUpFirestore();
+        startService();
 
+    }
+
+    // method for starting the service
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    public void startService() {
+            startService(new Intent(this, ForegroundService.class));
 
     }
 
@@ -64,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.w(TAG, "Listen failed.", e);
                     return;
                 }
-                Log.d("E-S-R", "FIREBASE EVENT");
 
                 QuerySnapshot snapshots = (QuerySnapshot) object;
 
@@ -73,18 +82,18 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        Boolean isReady = messageBody.equals(getResources().getString(R.string.body_ready));
-                        Boolean isHappy = messageBody.equals("HAPPY");
-                        // show waiting screen for all emotions and state except for ready (robot idle mode) and happy (where app displays specific content)
-                        if(!(isReady || isHappy)) {
-                            showLoadingScreen(messageBody);
-                        } else {
-                            showMainScreen();
+                        Settings.status =StatusMessage.valueOf(messageBody);
+
+                        // TODO : activate speech recognizer (own class) once app receives "AWAKE"
+                        // https://developer.android.com/training/wearables/user-input/voice
+
+                        switch (Settings.status){
+                            case SNAKE:
                         }
                     }
                     Log.d("E-S-R", "MESSAGE FROM: " + document.getDocument().getString("sender") + " -- " + messageBody);
                 } else {
-                    showMainScreen();
+                    // showMainScreen();
 
                 }
             }
@@ -124,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, "STOP");
         showLoadingScreen(getResources().getString(R.string.body_stop));
 
-        if (MediaPlayer.mediaPlayer.isPlaying()){
+        if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
             MediaPlayer.stopSong();
         }
     }

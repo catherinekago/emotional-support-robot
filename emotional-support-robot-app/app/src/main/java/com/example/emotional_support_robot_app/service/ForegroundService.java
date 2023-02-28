@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.text.Html;
@@ -16,20 +17,82 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.example.emotional_support_robot_app.FirestoreHandler;
+import com.example.emotional_support_robot_app.MainActivity;
+import com.example.emotional_support_robot_app.R;
+import com.example.emotional_support_robot_app.Settings;
+import com.example.emotional_support_robot_app.StatusMessage;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
+import ai.picovoice.porcupine.Porcupine;
+import ai.picovoice.porcupine.PorcupineException;
+import ai.picovoice.porcupine.PorcupineManager;
 
 @RequiresApi(api = Build.VERSION_CODES.R)
 @SuppressLint("DefaultLocale")
 public class ForegroundService extends Service {
 
+    private FirebaseFirestore firebase;
+    private CollectionReference collectionRef;
+
     private static final double updateFrequency = 15; // in seconds
     private static final String NOTIFICATION_CHANNEL_ID = "example.permanence";
     private static final String channelName = "Background Service";
 
+    private String accessKey = "XtZfmmOD3T09VbD3Y7A/sV8B/gdKarnZQMSWK2YFSlDWIAljYsZNHA=="; // your Picovoice AccessKey
+    private PorcupineManager porcupineManager;
+
     public ForegroundService() {
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        // setup firebase connection
+        this.firebase = FirebaseFirestore.getInstance();
+        this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
+
+        try {
+            // Add own wake word
+            porcupineManager = new PorcupineManager.Builder()
+                    .setAccessKey(accessKey)
+                    .setSensitivity(0.7f)
+                    .setKeywordPaths(new String[]{"Hey-Ezra_en_android_v2_1_0.ppn"})
+                    .build(getApplicationContext(),
+                            (keywordIndex) -> {
+                                // wake word detected!
+
+                                if(Settings.status == StatusMessage.SNAKE){
+                                    Settings.status = StatusMessage.WAKEWORD;
+                                    Log.e("E-S-R", "HEY ESRA");
+                                    // post "WAKEWORD" to database
+                                    FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+                                    try {
+                                        TimeUnit.SECONDS.sleep(3);
+                                        if (Settings.status != StatusMessage.AWAKE){
+                                            Settings.status = StatusMessage.SNAKE;
+                                            Log.e("E-S-R", "NO RESPONSE");
+                                            FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+                                        }
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+
+                            });
+            porcupineManager.start();
+        } catch (PorcupineException e) {
+            Log.e("E-S-R PORCUPINE SERVICE", e.toString());
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -46,13 +109,6 @@ public class ForegroundService extends Service {
             startMyOwnForeground();
         else
             startForeground(1, new Notification());
-
-    }
-
-    @Override
-    // Close overlay and foreground service if app is closed
-    public void onTaskRemoved(Intent rootIntent) {
-        stopSelf();
     }
 
     /**
@@ -87,7 +143,6 @@ public class ForegroundService extends Service {
                 .setCategory(Notification.CATEGORY_SERVICE)
                 //.setColor(getResources().getColor(R.color.primaryVariant))
                 .setColorized(true)
-
                 .build();
 
         startForeground(2, notification);

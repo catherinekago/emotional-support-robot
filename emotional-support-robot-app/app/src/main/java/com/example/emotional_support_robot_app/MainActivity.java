@@ -17,6 +17,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -41,7 +42,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import ai.picovoice.cheetah.CheetahException;
 import ai.picovoice.porcupine.PorcupineException;
 
 
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
     private TextView title;
+    private TextView errorText;
 
     public static final Integer RecordAudioRequestCode = 1;
     private SpeechRecognizer speechRecognizer;
@@ -66,12 +67,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.title = findViewById(R.id.Title);
+        this.errorText = findViewById(R.id.errorText);
 
         setUpFirestore();
         Settings.status = StatusMessage.SNAKE;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
         startService();
         setupSpeechRecognizer();
+        speechRecognizer.stopListening();
         
         // Check permissions
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
@@ -98,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 utterance = (data.get(0));
                 Log.e("E-S-R", utterance);
                 isListening = false;
-
+                errorText.setVisibility(View.INVISIBLE);
                 handleUtterance(utterance);
             }
 
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onBeginningOfSpeech() { title.setText("Listening...");}
+            public void onBeginningOfSpeech() { }
 
             @Override public void onRmsChanged(float v) { }
 
@@ -115,12 +118,14 @@ public class MainActivity extends AppCompatActivity {
             public void onBufferReceived(byte[] bytes) { }
 
             @Override
-            public void onEndOfSpeech() { }
+            public void onEndOfSpeech() {errorText.setVisibility(View.INVISIBLE);
+
+            }
 
             @Override
             public void onError(int i) {Log.e("E-S-R", "speech error " + i);
                 isListening = true;
-                title.setText("Could you repeat that, please?");
+                errorText.setVisibility(View.VISIBLE);
                 Log.e("E-S-R", "listening failed - start listening once again");
                 speechRecognizer.cancel();
                 setupSpeechRecognizer();
@@ -178,12 +183,11 @@ public class MainActivity extends AppCompatActivity {
             title.setText("You selected \n \n" + Settings.status.name());
 
         } else {
-            title.setText("Sorry, would you mind repeating what you just said?");
+            errorText.setVisibility(View.VISIBLE);
             isListening = true;
             speechRecognizer.cancel();
             setupSpeechRecognizer();
             speechRecognizer.startListening(speechRecognizerIntent);
-
         }
 
     }
@@ -214,9 +218,10 @@ public class MainActivity extends AppCompatActivity {
             title.setText("You selected \n \n" + Settings.status.name());
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
         } else if (hasHappy || hasAmazing || hasAwesome || hasGood || hasGreat || hasDancing) {
+            Settings.status = StatusMessage.HAPPY;
             provideSongOptions();
         } else {
-            title.setText("Sorry, would you mind repeating what you just said?");
+            errorText.setVisibility(View.VISIBLE);
             isListening = true;
             speechRecognizer.cancel();
             setupSpeechRecognizer();
@@ -309,11 +314,13 @@ public class MainActivity extends AppCompatActivity {
                                         speechRecognizer.cancel();
                                         setupSpeechRecognizer();
                                         speechRecognizer.startListening(speechRecognizerIntent);
+
                                     }
                                 break;
 
                             case PLAYING:
-                                speechRecognizer.cancel();
+                                    speechRecognizer.cancel();
+
                                 title.setText("ESRA in action ...");
                                 break;
 

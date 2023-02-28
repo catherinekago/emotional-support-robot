@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from pymycobot import MyCobot
 from pymycobot.genre import Angle
 from pymycobot.genre import Coord
+from pymycobot import MyCobotSocket
 
 # Step 1 Add Firebase Admin SDK to python app in terminal
 # If you have pip in your PATH environment variable: pip install --upgrade firebase-admin 
@@ -31,8 +32,13 @@ app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # Initiate a MyCobot object
-# TODO: if there is an error, try ttyACM0
+# TODO: if there is an error, try ttyACM1
+
+#----Local connection: 
 mc = MyCobot('/dev/ttyACM0', 115200)
+
+#----WIFI:
+#mc = MyCobotSocket("192.168.1.106", 9000)
 
 # Create Firebase Firestore listener
 
@@ -41,26 +47,30 @@ callback_done = threading.Event()
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
+    print("Initialize Robot")
 
     #idle state == snake
     mc.set_color(240,240,240)
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'sender': "ROBOT"})
+    #db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+    time.sleep(4)
 
     print(f'Received message from: {doc_snapshot[0].get("sender")}')
-    sender = doc_snapshot[0].get("sender");
-    bodyFromSnapshot = doc_snapshot[0].get("body");
+    sender = doc_snapshot[0].get("sender")
+    bodyFromSnapshot = doc_snapshot[0].get("body")
     print("retrieved body ", bodyFromSnapshot)
 
-    if (sender == "ANDROID"):
-        # set global variable to trigger publishing received emotion
-        global body
-        body = bodyFromSnapshot
-        if (body == "WAKEWORD"):
-            print("Body is wakeword")
-            wakeWordDetected()
-        callback_done.set()
+    # set global variable to trigger publishing received emotion
+    global body
+    body = bodyFromSnapshot
+    if (body == "WAKEWORD"):
+        print("Body is wakeword")
+        wakeWordDetected()
+    elif (body == "HAPPY" | body == "ANXIOUS"):
+        emotionDetected(body)
+
+    callback_done.set()
 
 def wakeWordDetected():
     #activate robot --> wake word by app
@@ -68,7 +78,6 @@ def wakeWordDetected():
     print("Robot awakened")
         
     ##listening state
-    #TODO why is color not changing? Why is head in wrong position?
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1.1)
     mc.set_color(0,150,255)
@@ -85,8 +94,10 @@ def wakeWordDetected():
     mc.send_angle(Angle.J5.value, -10, 80)
     time.sleep(4)
 
-    #TODO change emotion here based on detected emotion
-    emotion = "ANXIOUS"
+    #TODO remove when emotion is received from phone
+    #emotionDetected("ANXIOUS")
+
+def emotionDetected(emotion):
 
     ##active state
     mc.set_color(0,255,0)
@@ -101,14 +112,19 @@ def wakeWordDetected():
         #TODO Breathing exercise
         print("Anxious dancing")
 
-        mc.send_coord(Coord.X.value, -10, 70)
-        time.sleep(2)
-        mc.send_coord(Coord.Y.value, -10, 70)
-        time.sleep(2)
-        mc.send_coord(Coord.X.value, 10, 70)
-        time.sleep(2)
-        mc.send_coord(Coord.Y.value, 10, 70)
-        time.sleep(2)
+        for i in range(4):
+
+            mc.send_angles([-25, 38, 10, -55, 27, 0], 10)
+            time.sleep(4)
+
+            mc.send_angles([48, 18, 42, -55, -50, 0], 7)
+            time.sleep(4)
+
+            mc.send_angles([45, 47, 75, -75, 50, 0], 10)
+            time.sleep(4)        
+
+            mc.send_angles([-25, 50, 75, -75, 25, 0], 10)
+            time.sleep(4)
 
     else:
         #TODO Default case?

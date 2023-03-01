@@ -43,6 +43,8 @@ mc = MyCobotSocket("192.168.1.106", 9000)
 callback_done = threading.Event()
 stop = False
 
+bodyValue = "SNAKE"
+breakLoop = False
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
@@ -55,12 +57,12 @@ def on_snapshot(doc_snapshot, changes, read_time):
     print("retrieved body ", bodyFromSnapshot)
 
     # set global variable to trigger publishing received emotion
-    global bodyValue
     bodyValue = bodyFromSnapshot
 
     if (bodyValue == "SNAKE"):
         # idle state == snake
         print("snakey")
+        breakLoop = False
         mc.stop()
         pulsingLight()
         goToSnakeMode()
@@ -68,8 +70,9 @@ def on_snapshot(doc_snapshot, changes, read_time):
         print("Body is wakeword")
         wakeWordDetected()
     elif bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS":
-        emotionDetected()
+        emotionDetected(bodyValue)
     elif bodyValue == "STOP":
+        breakLoop = True
         stopRobot()
 
     callback_done.set()
@@ -110,8 +113,7 @@ def wakeWordDetected():
     time.sleep(4)
 
 
-def emotionDetected():
-    emotion = bodyValue
+def emotionDetected(emotion):
     print("Received an emotion " + emotion)
 
     ##active state
@@ -130,6 +132,10 @@ def emotionDetected():
     # TODO: user can interrupt routine
     # call stopRobot() or pauseRobot() and break (if you're in a loop)
 
+docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
+
+# Watch the document
+doc_watch = docs_ref.on_snapshot(on_snapshot)
 
 ### EMOTION FUNCTIONS ###
 
@@ -162,20 +168,14 @@ def startBreathingExercise():
         print("Position 2")
         time.sleep(4)
 
-        if bodyValue == "STOP":
-            print(bodyValue)
-            stopRobot()
-            break
+        docs_ref.on_snapshot(on_snapshot)
 
         # mc.send_angles([45, 47, 75, -75, -50, 0], 10)
         mc.send_angles([45, 47, 75, -75, -50, 0], 10)
         print("Position 3")
         time.sleep(4)
 
-        if (bodyValue == "STOP"):
-            print(bodyValue)
-            stopRobot()
-            break
+        docs_ref.on_snapshot(on_snapshot)
 
         # mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
         mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
@@ -187,17 +187,12 @@ def startBreathingExercise():
     updateBodyToSnake()
 
 
-docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
-
-# Watch the document
-doc_watch = docs_ref.on_snapshot(on_snapshot)
-
 
 def happyDance(emotion):
     if emotion == "HAPPY_128":
         print(stop)
         # COLOR = pink
-        mc.set_color(255, 20, 417)
+        mc.set_color(255, 20, 147)
         start = time.time()
         bpm = 199
         print(stop)
@@ -290,8 +285,7 @@ def updateBodyToSnake():
 
 
 def goToSnakeMode(speed=50):
-    # TODO set speed accordingly
-    ##idle state == snake
+    ##idle state == snake, speed accordingly
     pulsingLight()
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], speed)
     time.sleep(4)

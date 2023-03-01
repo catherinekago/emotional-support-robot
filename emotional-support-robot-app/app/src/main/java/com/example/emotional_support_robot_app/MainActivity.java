@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -72,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
         setUpFirestore();
         Settings.status = StatusMessage.SNAKE;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+
+        Settings.mainActivity = this;
+
         startService();
         setupSpeechRecognizer();
         speechRecognizer.stopListening();
@@ -173,13 +177,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (hasWalking || hasSunshine){
             Settings.status = StatusMessage.HAPPY_109;
-            MediaPlayer.playSong(this, R.raw.happy_109);
+            Settings.song = R.raw.happy_109;
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
             speechRecognizer.cancel();
         } else if (hasSexy || hasKnow) {
             Settings.status = StatusMessage.HAPPY_128;
-            MediaPlayer.playSong(this, R.raw.happy_128);
+            Settings.song = R.raw.happy_128;
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
             speechRecognizer.cancel();
@@ -306,7 +310,8 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     Settings.porcupineManager.stop();
                                     title.setText("Hi! Waking up...");
-                                } catch (PorcupineException porcupineException) {
+                                    Thread.sleep(2000);
+                                } catch (PorcupineException | InterruptedException porcupineException) {
                                     porcupineException.printStackTrace();
                                 }
                                 break;
@@ -322,9 +327,14 @@ public class MainActivity extends AppCompatActivity {
                                 break;
 
                             case PLAYING:
-                                    speechRecognizer.cancel();
 
-                                title.setText("ESRA in action ...");
+                                if (Settings.song != 0){
+                                    speechRecognizer.cancel();
+                                    MediaPlayer.playSong(Settings.mainActivity, Settings.song);
+                                    title.setText("ESRA in action ...");
+                                    // Reset song variable
+                                    Settings.song = 0;
+                                }
                                 break;
 
                             case STOP:
@@ -332,7 +342,6 @@ public class MainActivity extends AppCompatActivity {
                                 if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
                                     MediaPlayer.stopSong();
                                 }
-
 
                         }
                     }

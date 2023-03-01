@@ -249,19 +249,18 @@ def happyDance(emotion):
             if bpm % 4 == 0:
                 while x > 0:
                     time.sleep(0.15)
-                    mc.send_angles([0, -30, -40, 20, 40, 50], 100)
+                    mc.send_angles([0, -15, -20, 20, 40, 50], 100)
                     time.sleep(0.15)
-                    mc.send_angles([0, 30, 40, 20, -40, 50], 100)
+                    mc.send_angles([0, 15, 20, 20, -40, 50], 100)
                     x -= 1
             elif bpm % 6 == 0:
-                time.sleep(0.35)
                 while x > 0:
-                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                    mc.send_angles([1.49, -115, 150, -30, -100, -137.9], 100)
                     time.sleep(0.15)
-                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                    mc.send_angles([1.49, -55, 150, -80, 100, -137.9], 100)
                     time.sleep(0.15)
                     x -= 1
-            elif bpm % 3 == 0:
+            elif bpm % 5 == 0:
                 while x > 0:
                     mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
                     time.sleep(0.3)
@@ -269,10 +268,11 @@ def happyDance(emotion):
                     time.sleep(0.3)
                     x -= 1
             else:
+                time.sleep(0.35)
                 while x > 0:
-                    mc.send_angles([1.49, -115, 150, -30, -100, -137.9], 100)
+                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
                     time.sleep(0.15)
-                    mc.send_angles([1.49, -55, 150, -80, 100, -137.9], 100)
+                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
                     time.sleep(0.15)
                     x -= 1
             bpm -= 1

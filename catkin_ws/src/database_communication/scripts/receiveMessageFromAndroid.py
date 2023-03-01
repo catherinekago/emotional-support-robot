@@ -33,7 +33,7 @@ db = firestore.client()
 
 # Initiate a MyCobot object
 
-#----Local connection (if there is an error, try ttyACM1): 
+#----Local connection (if there is an error, try ttyACM1):
 #mc = MyCobot('/dev/ttyACM0', 115200)
 
 #----WIFI:
@@ -79,7 +79,7 @@ def wakeWordDetected():
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1.1)
     mc.set_color(0,150,255)
-    
+
 
     #listening routine
     #TODO: add more listening signs (tilting the head)
@@ -102,10 +102,10 @@ def emotionDetected(emotion):
     #HAPPY_BPM
     if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
         #TODO Happy Dances
+        happyDance()
         print("Happy dance")
     elif(emotion == "ANXIOUS"):
         #TODO Breathing exercise
-        print("Anxious dancing")
 
         for i in range(3):
             print(i)
@@ -117,7 +117,7 @@ def emotionDetected(emotion):
             time.sleep(4)
 
             mc.send_angles([45, 47, 75, -75, 50, 0], 10)
-            time.sleep(4)        
+            time.sleep(4)
 
             mc.send_angles([-25, 50, 75, -75, 25, 0], 10)
             time.sleep(4)
@@ -154,6 +154,35 @@ docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
 # Watch the document
 doc_watch = docs_ref.on_snapshot(on_snapshot)
+
+
+def happyDance():
+    bpm = 220
+    while bpm > 0:
+        if bpm % 2 == 0:
+            mc.send_angles([180, 15, 10, 80, 23, 0], 90)
+            time.sleep(0.7)
+            mc.send_angles([-180, -5, -5, -60, -56, 0], 90)
+            time.sleep(0.7)
+        elif bpm % 3 == 0:
+            mc.send_angles([30, 25, 15, 25, 50, 0], 90)
+            time.sleep(0.7)
+            mc.send_angles([-20, -20, -10, -25, -50, 0], 90)
+            time.sleep(0.7)
+        elif bpm % 5 == 0:
+            mc.send_angles([20, -5, -5, -5, 10, 0], 90)
+            time.sleep(0.7)
+            mc.send_angles([-20, -20, -10, -15, -10, 0], 90)
+            time.sleep(0.7)
+        else:
+            #good
+            time.sleep(1)
+            mc.send_angles([0, 0, 0, 20, 30, 0], 50)
+            time.sleep(0.7)
+            mc.send_angles([-10, 20, 0, -45, -30, 0], 50)
+            time.sleep(0.7)
+        bpm -= 1
+    print("Happy dance")
 
 
 # Publisher code

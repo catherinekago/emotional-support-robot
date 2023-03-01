@@ -116,7 +116,6 @@ def emotionDetected():
     #HAPPY_BPM
     if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
         happyDance(emotion)
-        print("Happy dance")
     elif(emotion == "ANXIOUS"):
         startBreathingExercise() 
     else:
@@ -184,6 +183,8 @@ def startBreathingExercise():
 
 def happyDance(emotion):
     if emotion == "HAPPY_128":
+        #COLOR = pink
+        mc.set_color(255, 0, 191)
         start = time.time()
         bpm = 90
         while time.time() - start < 90:  # 199
@@ -214,6 +215,8 @@ def happyDance(emotion):
                 time.sleep(0.15)
             bpm -= 1
     else:
+        #COLOR = yellow
+        mc.set_color(255, 191, 0)
         start = time.time()
         bpm = 91
         while time.time() - start < 91:  # 196

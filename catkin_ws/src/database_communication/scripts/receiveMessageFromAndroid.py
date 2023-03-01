@@ -30,7 +30,6 @@ cred = credentials.Certificate(
     "/home/ubunutu/Desktop/emotional-support-robot/emotional-support-robot/catkin_ws/src/database_communication/scripts/firebase-credentials/emotional-support-robot-firebase-adminsdk-pvqeh-82d0908a80.json")
 app = firebase_admin.initialize_app(cred)
 db = firestore.client()
-
 # Initiate a MyCobot object
 
 # ----Local connection (if there is an error, try ttyACM1):
@@ -46,6 +45,8 @@ callback_done = threading.Event()
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
+    global stop
+    stop = False
     print("Initialize Robot")
 
     print(doc_snapshot[0])
@@ -136,10 +137,11 @@ def startBreathingExercise():
     mc.set_color(0, 150, 255)
 
     for i in range(2):
+        docs_ref.on_snapshot(on_snapshot)
         print(i)
         print(bodyValue)
 
-        if (bodyValue == "STOP"):
+        if stop:
             print(bodyValue)
             stopRobot()
             break
@@ -149,7 +151,7 @@ def startBreathingExercise():
         print("Position 1")
         time.sleep(4)
 
-        if bodyValue == "STOP":
+        if stop:
             print(bodyValue)
             stopRobot()
             break
@@ -193,12 +195,14 @@ doc_watch = docs_ref.on_snapshot(on_snapshot)
 def happyDance(emotion):
     if emotion == "HAPPY_128":
         # COLOR = pink
-        mc.set_color(255, 0, 191)
+        mc.set_color(255, 20, 417)
         start = time.time()
-        bpm = 90
-        while time.time() - start < 50:
+        bpm = 199
+        print(stop)
+        while time.time() - start < 199:
+            if stop:
+                break
             docs_ref.on_snapshot(on_snapshot)
-            # 199
             x = 3
             if bpm % 7 == 0:
                 mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
@@ -229,9 +233,13 @@ def happyDance(emotion):
     else:
         start = time.time()
         # COLOR = yellow
-        mc.set_color(255, 191, 0)
-        bpm = 60
-        while time.time() - start < 10:  # 196
+        mc.set_color(255, 140, 0)
+        bpm = 196
+        while time.time() - start < 196:
+            if stop:
+                break
+            else:
+                docs_ref.on_snapshot(on_snapshot)
             x = 3
             if bpm % 8 == 0:
                 while x > 0:
@@ -298,6 +306,8 @@ def resumeRobot(sleepTime=0):
 
 
 def stopRobot(sleepTime=0):
+    global stop
+    stop = True
     time.sleep(sleepTime)
     mc.stop()
     goToSnakeMode()

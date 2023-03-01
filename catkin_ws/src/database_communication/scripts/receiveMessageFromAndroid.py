@@ -41,6 +41,7 @@ mc = MyCobotSocket("192.168.1.106", 9000)
 # Create Firebase Firestore listener
 # Create an Event for notifying main thread.
 callback_done = threading.Event()
+stop = False
 
 
 # Create a callback on_snapshot function to capture changes
@@ -194,12 +195,14 @@ doc_watch = docs_ref.on_snapshot(on_snapshot)
 
 def happyDance(emotion):
     if emotion == "HAPPY_128":
+        print(stop)
         # COLOR = pink
         mc.set_color(255, 20, 417)
         start = time.time()
         bpm = 199
         print(stop)
         while time.time() - start < 199:
+            print("before")
             if stop:
                 break
             docs_ref.on_snapshot(on_snapshot)
@@ -273,11 +276,11 @@ def happyDance(emotion):
                     time.sleep(0.15)
                     x -= 1
             bpm -= 1
-    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     print("Happy dance")
-
-    goToSnakeMode()
-    updateBodyToSnake()
+    if not stop:
+        mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+        goToSnakeMode()
+        updateBodyToSnake()
 
 
 ### HELPER FUNCTIONS ###

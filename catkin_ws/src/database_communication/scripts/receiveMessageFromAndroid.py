@@ -62,12 +62,12 @@ def on_snapshot(doc_snapshot, changes, read_time):
         mc.stop()
         pulsingLight()
         goToSnakeMode()
-    elif (bodyValue == "WAKEWORD"):
+    elif bodyValue == "WAKEWORD":
         print("Body is wakeword")
         wakeWordDetected()
-    elif (bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS"):
+    elif bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS":
         emotionDetected()
-    elif (bodyValue == "STOP"):
+    elif bodyValue == "STOP":
         stopRobot()
 
     callback_done.set()
@@ -117,9 +117,9 @@ def emotionDetected():
 
     # Reaction to emotion initiated here
     # HAPPY_BPM
-    if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
+    if emotion == "HAPPY_109" or emotion == "HAPPY_128":
         happyDance(emotion)
-    elif (emotion == "ANXIOUS"):
+    elif emotion == "ANXIOUS":
         startBreathingExercise()
     else:
         # TODO Default case?
@@ -149,7 +149,7 @@ def startBreathingExercise():
         print("Position 1")
         time.sleep(4)
 
-        if (bodyValue == "STOP"):
+        if bodyValue == "STOP":
             print(bodyValue)
             stopRobot()
             break
@@ -159,7 +159,7 @@ def startBreathingExercise():
         print("Position 2")
         time.sleep(4)
 
-        if (bodyValue == "STOP"):
+        if bodyValue == "STOP":
             print(bodyValue)
             stopRobot()
             break

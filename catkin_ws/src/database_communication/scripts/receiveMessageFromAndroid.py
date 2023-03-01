@@ -103,13 +103,19 @@ def wakeWordDetected():
     mc.set_color(240, 240, 240)
 
     # listening routine
-    # TODO: add more listening signs (tilting the head)
-    mc.send_angle(Angle.J5.value, -20, 80)
-    time.sleep(0.7)
-    mc.send_angle(Angle.J5.value, 20, 80)
-    time.sleep(0.7)
-    mc.send_angle(Angle.J5.value, -10, 80)
-    time.sleep(4)
+    # TODO: add more listening signs (tilting the head) -- should be loop
+    mc.send_angles([0,0,0,-10,-20,0], 50)
+    #mc.send_angle(Angle.J5.value, -20, 80)
+    #mc.send_angle(Angle.J4.value, -10, 80)
+    time.sleep(0.5)
+    #mc.send_angle(Angle.J5.value, 20, 80)
+    #mc.send_angle(Angle.J4.value, 10, 80)
+    mc.send_angles([0,0,0,10,20,0], 50)
+    time.sleep(0.5)
+    #mc.send_angle(Angle.J5.value, -10, 80)
+    #mc.send_angle(Angle.J4.value, 0, 80)
+    mc.send_angles([0,0,0,0,0,0], 50)
+    time.sleep(1)
 
 
 def emotionDetected(emotion):
@@ -153,33 +159,37 @@ def startBreathingExercise():
             break
 
         # mc.send_angles([-25, 38, 10, -55, 50, 0], 10)
-        mc.send_angles([-45, 38, 10, -55, 50, 0], 10)
+        #mc.send_angles([-45, 38, 10, -55, 50, 0], 10)
+        mc.send_angles([-45, 0, 90, -90, 75, 0], 10)
         print("Position 1")
-        time.sleep(4)
+        time.sleep(5)
 
         if stop:
             print(bodyValue)
             stopRobot()
             break
 
-        # mc.send_angles([48, 18, 42, -55, -50, 0], 7)
-        mc.send_angles([45, 18, 42, -55, -50, 0], 7)
+        # mc.send_angles([45, 18, 42, -55, -50, 0], 7)
+        mc.send_angles([45, 0, 90, -90, -45, 0], 10)
         print("Position 2")
-        time.sleep(4)
+        time.sleep(5)
 
         docs_ref.on_snapshot(on_snapshot)
 
         # mc.send_angles([45, 47, 75, -75, -50, 0], 10)
-        mc.send_angles([45, 47, 75, -75, -50, 0], 10)
+        #mc.send_angles([45, 75, 60, -135, -45, 0], 10)
+        mc.send_angles([45, 0, 90, -90, -45, 0], 10)
         print("Position 3")
-        time.sleep(4)
+        time.sleep(5)
 
         docs_ref.on_snapshot(on_snapshot)
 
         # mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
-        mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
+        #mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
+        #mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
+        mc.send_angles([-45, 0, 90, -90, 75, 0], 10)
         print("Position 4")
-        time.sleep(4)
+        time.sleep(5)
 
         # mc.send_angles([90,45,-90,90,-90,90],50)
     goToSnakeMode(40)

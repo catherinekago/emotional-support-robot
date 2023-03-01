@@ -31,8 +31,16 @@ public class TTS {
 
                         @Override
                         public void onDone(String utteranceId) {
-                            Log.i("E-S-R TTS","On Done");
-                            Settings.mainActivity.setListeningMode("request");
+                            Boolean statusIsAwake = Settings.status == StatusMessage.AWAKE;
+                            Boolean statusIsHappy = Settings.status == StatusMessage.HAPPY;
+                            Boolean statusIsWakeword = Settings.status == StatusMessage.WAKEWORD;
+                            if (!(statusIsAwake|| statusIsHappy || statusIsWakeword)){
+                                Settings.mainActivity.setListeningMode("activation");
+                                Log.d("E-S-R TTS","On Done - start ACTIVATION LISTENING again");
+                            } else {
+                                Settings.mainActivity.setListeningMode("request");
+                                Log.d("E-S-R TTS","On Done - start REQUEST again");
+                            }
                         }
 
                         @Override

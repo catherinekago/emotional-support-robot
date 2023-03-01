@@ -40,7 +40,6 @@ db = firestore.client()
 mc = MyCobotSocket("192.168.1.106", 9000)
 
 # Create Firebase Firestore listener
-
 # Create an Event for notifying main thread.
 callback_done = threading.Event()
 
@@ -54,23 +53,34 @@ def on_snapshot(doc_snapshot, changes, read_time):
     print("retrieved body ", bodyFromSnapshot)
 
     # set global variable to trigger publishing received emotion
-    global body
-    body = bodyFromSnapshot
-    if (body == "SNAKE"):
+    global bodyValue
+    bodyValue = bodyFromSnapshot
+
+    if(bodyValue == "SNAKE"):
+        #idle state == snake
         print("snakey")
-        # idle state == snake
-        mc.set_color(240, 240, 240)
-        mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-    elif (body == "WAKEWORD"):
+        mc.stop()
+        pulsingLight()
+        goToSnakeMode()
+    elif (bodyValue == "WAKEWORD"):
         print("Body is wakeword")
         wakeWordDetected()
-    elif (body == "HAPPY_109" or body == "HAPPY_128" or body == "ANXIOUS"):
-        emotionDetected(body)
-    elif (body == "STOP"):
-        print("stop stop")
+    elif (bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS"):
+        emotionDetected()
+    elif (bodyValue == "STOP"):
+        stopRobot()
 
     callback_done.set()
 
+def pulsingLight():
+    #TODO
+    #COLOR = off
+    mc.set_color(1,1,1)
+    #while (body=="SNAKE"):
+     #   mc.set_color(240,240,240)
+      #  time.sleep(0.3)
+       # mc.set_color()
+        #time.sleep(0.3)
 
 def wakeWordDetected():
     # activate robot --> wake word by app
@@ -82,11 +92,12 @@ def wakeWordDetected():
     ##listening state
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1.1)
-    mc.set_color(0, 150, 255)
 
-    # listening routine
-    # TODO: add more listening signs (tilting the head)
-    time.sleep(1)
+    #COLOR = white
+    mc.set_color(240,240,240)
+
+    #listening routine
+    #TODO: add more listening signs (tilting the head)
     mc.send_angle(Angle.J5.value, -20, 80)
     time.sleep(0.7)
     mc.send_angle(Angle.J5.value, 20, 80)
@@ -94,40 +105,19 @@ def wakeWordDetected():
     mc.send_angle(Angle.J5.value, -10, 80)
     time.sleep(4)
 
-
-def emotionDetected(emotion):
+def emotionDetected():
+    emotion = bodyValue
     print("Received an emotion " + emotion)
 
     ##active state
-    mc.set_color(0, 255, 0)
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
-    # Reaction to emotion initiated here
-    # HAPPY_BPM
-    if (emotion == "HAPPY_109" or "HAPPY_128"):
-        # TODO Happy Dances
+    #Reaction to emotion initiated here
+    #HAPPY_BPM
+    if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
         happyDance(emotion)
-        print("Happy dance")
-    elif (emotion == "ANXIOUS"):
-        # TODO Breathing exercise
-
-        for i in range(3):
-            print(i)
-
-            mc.send_angles([-25, 38, 10, -55, 27, 0], 10)
-            time.sleep(4)
-
-            mc.send_angles([48, 18, 42, -55, -50, 0], 7)
-            time.sleep(4)
-
-            mc.send_angles([45, 47, 75, -75, 50, 0], 10)
-            time.sleep(4)
-
-            mc.send_angles([-25, 50, 75, -75, 25, 0], 10)
-            time.sleep(4)
-
-            # mc.send_angles([90,45,-90,90,-90,90],50)
-
+    elif(emotion == "ANXIOUS"):
+        startBreathingExercise()
     else:
         # TODO Default case?
         print("Emotion: " + emotion)
@@ -135,37 +125,71 @@ def emotionDetected(emotion):
     # TODO: user can interrupt routine
     # call stopRobot() or pauseRobot() and break (if you're in a loop)
 
-    ##idle state == snake
-    mc.set_color(240, 240, 240)
-    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], 50)
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
-
-    time.sleep(4)
 
 
-def pauseRobot(sleepTime=0):
-    time.sleep(sleepTime)
-    mc.pause()
+### EMOTION FUNCTIONS ###
 
+def startBreathingExercise():
+    #COLOR = blue
+    mc.set_color(0,150,255)
 
-def resumeRobot(sleepTime=0):
-    time.sleep(sleepTime)
-    mc.resume()
+    for i in range(2):
+        print(i)
+        print(bodyValue)
 
+        if (bodyValue == "STOP"):
+            print(bodyValue)
+            stopRobot()
+            break
 
-def stopRobot(sleepTime=0):
-    time.sleep(sleepTime)
-    mc.stop()
+        #mc.send_angles([-25, 38, 10, -55, 50, 0], 10)
+        mc.send_angles([-45, 38, 10, -55, 50, 0], 10)
+        print("Position 1")
+        time.sleep(4)
 
+        if (bodyValue == "STOP"):
+            print(bodyValue)
+            stopRobot()
+            break
+
+        #mc.send_angles([48, 18, 42, -55, -50, 0], 7)
+        mc.send_angles([45, 18, 42, -55, -50, 0], 7)
+        print("Position 2")
+        time.sleep(4)
+
+        if (bodyValue == "STOP"):
+            print(bodyValue)
+            stopRobot()
+            break
+
+        #mc.send_angles([45, 47, 75, -75, -50, 0], 10)
+        mc.send_angles([45, 47, 75, -75, -50, 0], 10)
+        print("Position 3")
+        time.sleep(4)
+
+        if (bodyValue == "STOP"):
+            print(bodyValue)
+            stopRobot()
+            break
+
+        #mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
+        mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
+        print("Position 4")
+        time.sleep(4)
+
+        #mc.send_angles([90,45,-90,90,-90,90],50)
+    goToSnakeMode(40)
+    updateBodyToSnake()
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
 # Watch the document
 doc_watch = docs_ref.on_snapshot(on_snapshot)
 
-
 def happyDance(emotion):
     if emotion == "HAPPY_128":
+        #COLOR = pink
+        mc.set_color(255, 0, 191)
         start = time.time()
         bpm = 90
         while time.time() - start < 50:
@@ -186,6 +210,7 @@ def happyDance(emotion):
             elif bpm % 5 == 0:
                 mc.send_angles([70, 25, 15, 15, 50, 0], 100)
                 time.sleep(0.15)
+                mc.send_angles([-70, -25, -15, -30, -56, 0], 100)
                 time.sleep(0.15)
             else:
                 # good
@@ -198,8 +223,9 @@ def happyDance(emotion):
                     x -= 1
             bpm -= 1
     else:
-        print("walking on sunshine")
         start = time.time()
+        #COLOR = yellow
+        mc.set_color(255, 191, 0)
         bpm = 60
         while time.time() - start < 10:  # 196
             x = 3
@@ -238,6 +264,37 @@ def happyDance(emotion):
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     print("Happy dance")
 
+    goToSnakeMode()
+    updateBodyToSnake()
+
+
+
+### HELPER FUNCTIONS ###
+
+def updateBodyToSnake():
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+
+def goToSnakeMode(speed = 50):
+    #TODO set speed accordingly
+    ##idle state == snake
+    pulsingLight()
+    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], speed)
+    time.sleep(4)
+
+def pauseRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.pause()
+
+def resumeRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.resume()
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+
+def stopRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.stop()
+    goToSnakeMode()
+    updateBodyToSnake()
 
 # Publisher code
 def receiveMessageFromAndroid():

@@ -237,37 +237,33 @@ def happyDance(emotion):
             docs_ref.on_snapshot(on_snapshot)
             x = 3
             if bpm % 4 == 0:
-                print("first")
                 while x > 0:
                     time.sleep(0.15)
-                    mc.send_angles([0, 0, 0, 20, 50, 50], 100)
+                    mc.send_angles([0, -30, -40, 20, 40, 50], 100)
                     time.sleep(0.15)
-                    mc.send_angles([0, 0, 0, 20, -50, 50], 100)
+                    mc.send_angles([0, 30, 40, 20, -40, 50], 100)
                     x -= 1
             elif bpm % 3 == 0:
-                print("second")
                 while x > 0:
-                    time.sleep(0.35)
-                    mc.send_angles([-1.49, 20, 80, 30, 100, 137.9], 100)
-                    time.sleep(0.8)
-                    mc.send_angles([-1.49, 40, 55, 80, -100, 137.9], 100)
+                    time.sleep(0.2)
+                    mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-1.49, 115, -150, 30, -100, 137.9], 100)
                     time.sleep(0.15)
                     x -= 1
             elif bpm % 7 == 0:
-                print("third")
                 while x > 0:
-                    time.sleep(0.35)
+                    time.sleep(0.2)
                     mc.send_angles([0, 0, 0, 20, 30, 0], 100)
                     time.sleep(0.15)
                     mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
                     time.sleep(0.15)
                     x -= 1
             else:
-                print("fourth")
                 while x > 0:
-                    mc.send_angles([1.49, -115, 153.45, -30, 33.42, -137.9], 100)
+                    mc.send_angles([1.49, -115, 150, -30, -100, -137.9], 100)
                     time.sleep(0.15)
-                    mc.send_angles([1.49, -55, 153.45, -80, -33.42, -137.9], 100)
+                    mc.send_angles([1.49, -55, 150, -80, 100, -137.9], 100)
                     time.sleep(0.15)
                     x -= 1
             bpm -= 1

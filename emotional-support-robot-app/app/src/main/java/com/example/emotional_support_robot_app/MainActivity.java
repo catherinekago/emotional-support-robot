@@ -176,11 +176,13 @@ public class MainActivity extends AppCompatActivity {
             MediaPlayer.playSong(this, R.raw.happy_109);
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
+            speechRecognizer.cancel();
         } else if (hasSexy || hasKnow) {
             Settings.status = StatusMessage.HAPPY_128;
             MediaPlayer.playSong(this, R.raw.happy_128);
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
+            speechRecognizer.cancel();
 
         } else {
             errorText.setVisibility(View.VISIBLE);
@@ -217,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
             Settings.status = StatusMessage.ANXIOUS;
             title.setText("You selected \n \n" + Settings.status.name());
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+            speechRecognizer.cancel();
         } else if (hasHappy || hasAmazing || hasAwesome || hasGood || hasGreat || hasDancing) {
             Settings.status = StatusMessage.HAPPY;
             provideSongOptions();
@@ -290,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        Log.d("E-S-R", "MESSAGE FROM: " + document.getDocument().getString("sender") + " -- " + messageBody);
+                        Log.d("E-S-R", "MESSAGE -- " + messageBody);
                         Settings.status =StatusMessage.valueOf(messageBody);
 
                         switch (Settings.status){
@@ -302,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
                             case WAKEWORD:
                                 try {
                                     Settings.porcupineManager.stop();
+                                    title.setText("Hi! Waking up...");
                                 } catch (PorcupineException porcupineException) {
                                     porcupineException.printStackTrace();
                                 }
@@ -314,7 +318,6 @@ public class MainActivity extends AppCompatActivity {
                                         speechRecognizer.cancel();
                                         setupSpeechRecognizer();
                                         speechRecognizer.startListening(speechRecognizerIntent);
-
                                     }
                                 break;
 

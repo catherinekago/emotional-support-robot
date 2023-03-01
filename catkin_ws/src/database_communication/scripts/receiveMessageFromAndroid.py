@@ -92,7 +92,7 @@ def wakeWordDetected():
     time.sleep(4)
 
 def emotionDetected(emotion):
-    print("Received an emotion")
+    print("Received an emotion " + emotion)
 
     ##active state
     mc.set_color(0,255,0)
@@ -100,14 +100,15 @@ def emotionDetected(emotion):
 
     #Reaction to emotion initiated here
     #HAPPY_BPM
-    if (emotion == "HAPPY_109" or "HAPPY_128"):
+    if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
         #TODO Happy Dances
         print("Happy dance")
     elif(emotion == "ANXIOUS"):
         #TODO Breathing exercise
         print("Anxious dancing")
 
-        for i in range(1):
+        for i in range(3):
+            print(i)
 
             mc.send_angles([-25, 38, 10, -55, 27, 0], 10)
             time.sleep(4)
@@ -121,11 +122,14 @@ def emotionDetected(emotion):
             mc.send_angles([-25, 50, 75, -75, 25, 0], 10)
             time.sleep(4)
 
+            #mc.send_angles([90,45,-90,90,-90,90],50)    
+
     else:
         #TODO Default case?
         print("Emotion: " + emotion)
             
     #TODO: user can interrupt routine
+    # call stopRobot() or pauseRobot() and break (if you're in a loop)
 
     ##idle state == snake
     mc.set_color(240,240,240)
@@ -133,6 +137,18 @@ def emotionDetected(emotion):
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
         
     time.sleep(4)
+
+def pauseRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.pause()
+
+def resumeRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.resume()
+
+def stopRobot(sleepTime = 0):
+    time.sleep(sleepTime)
+    mc.stop()
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 

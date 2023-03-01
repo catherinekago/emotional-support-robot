@@ -56,8 +56,8 @@ def on_snapshot(doc_snapshot, changes, read_time):
     global bodyValue
     bodyValue = bodyFromSnapshot
 
-    if(bodyValue == "SNAKE"):
-        #idle state == snake
+    if (bodyValue == "SNAKE"):
+        # idle state == snake
         print("snakey")
         mc.stop()
         pulsingLight()
@@ -72,15 +72,17 @@ def on_snapshot(doc_snapshot, changes, read_time):
 
     callback_done.set()
 
+
 def pulsingLight():
-    #TODO
-    #COLOR = off
-    mc.set_color(1,1,1)
-    #while (body=="SNAKE"):
-     #   mc.set_color(240,240,240)
-      #  time.sleep(0.3)
-       # mc.set_color()
-        #time.sleep(0.3)
+    # TODO
+    # COLOR = off
+    mc.set_color(1, 1, 1)
+    # while (body=="SNAKE"):
+    #   mc.set_color(240,240,240)
+    #  time.sleep(0.3)
+    # mc.set_color()
+    # time.sleep(0.3)
+
 
 def wakeWordDetected():
     # activate robot --> wake word by app
@@ -93,17 +95,18 @@ def wakeWordDetected():
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1.1)
 
-    #COLOR = white
-    mc.set_color(240,240,240)
+    # COLOR = white
+    mc.set_color(240, 240, 240)
 
-    #listening routine
-    #TODO: add more listening signs (tilting the head)
+    # listening routine
+    # TODO: add more listening signs (tilting the head)
     mc.send_angle(Angle.J5.value, -20, 80)
     time.sleep(0.7)
     mc.send_angle(Angle.J5.value, 20, 80)
     time.sleep(0.7)
     mc.send_angle(Angle.J5.value, -10, 80)
     time.sleep(4)
+
 
 def emotionDetected():
     emotion = bodyValue
@@ -112,11 +115,11 @@ def emotionDetected():
     ##active state
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
-    #Reaction to emotion initiated here
-    #HAPPY_BPM
+    # Reaction to emotion initiated here
+    # HAPPY_BPM
     if (emotion == "HAPPY_109" or emotion == "HAPPY_128"):
         happyDance(emotion)
-    elif(emotion == "ANXIOUS"):
+    elif (emotion == "ANXIOUS"):
         startBreathingExercise()
     else:
         # TODO Default case?
@@ -126,12 +129,11 @@ def emotionDetected():
     # call stopRobot() or pauseRobot() and break (if you're in a loop)
 
 
-
 ### EMOTION FUNCTIONS ###
 
 def startBreathingExercise():
-    #COLOR = blue
-    mc.set_color(0,150,255)
+    # COLOR = blue
+    mc.set_color(0, 150, 255)
 
     for i in range(2):
         print(i)
@@ -142,7 +144,7 @@ def startBreathingExercise():
             stopRobot()
             break
 
-        #mc.send_angles([-25, 38, 10, -55, 50, 0], 10)
+        # mc.send_angles([-25, 38, 10, -55, 50, 0], 10)
         mc.send_angles([-45, 38, 10, -55, 50, 0], 10)
         print("Position 1")
         time.sleep(4)
@@ -152,7 +154,7 @@ def startBreathingExercise():
             stopRobot()
             break
 
-        #mc.send_angles([48, 18, 42, -55, -50, 0], 7)
+        # mc.send_angles([48, 18, 42, -55, -50, 0], 7)
         mc.send_angles([45, 18, 42, -55, -50, 0], 7)
         print("Position 2")
         time.sleep(4)
@@ -162,7 +164,7 @@ def startBreathingExercise():
             stopRobot()
             break
 
-        #mc.send_angles([45, 47, 75, -75, -50, 0], 10)
+        # mc.send_angles([45, 47, 75, -75, -50, 0], 10)
         mc.send_angles([45, 47, 75, -75, -50, 0], 10)
         print("Position 3")
         time.sleep(4)
@@ -172,23 +174,25 @@ def startBreathingExercise():
             stopRobot()
             break
 
-        #mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
+        # mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
         mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
         print("Position 4")
         time.sleep(4)
 
-        #mc.send_angles([90,45,-90,90,-90,90],50)
+        # mc.send_angles([90,45,-90,90,-90,90],50)
     goToSnakeMode(40)
     updateBodyToSnake()
+
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
 # Watch the document
 doc_watch = docs_ref.on_snapshot(on_snapshot)
 
+
 def happyDance(emotion):
     if emotion == "HAPPY_128":
-        #COLOR = pink
+        # COLOR = pink
         mc.set_color(255, 0, 191)
         start = time.time()
         bpm = 90
@@ -197,11 +201,11 @@ def happyDance(emotion):
             # 199
             x = 3
             if bpm % 7 == 0:
-                    mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
-                    time.sleep(0.15)
-                    mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
-                    time.sleep(0.15)
-                    x -= 1
+                mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
+                time.sleep(0.15)
+                mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
+                time.sleep(0.15)
+                x -= 1
             elif bpm % 2 == 0:
                 mc.send_angles([50, 15, 5, 20, 40, 0], 100)
                 time.sleep(0.15)
@@ -224,7 +228,7 @@ def happyDance(emotion):
             bpm -= 1
     else:
         start = time.time()
-        #COLOR = yellow
+        # COLOR = yellow
         mc.set_color(255, 191, 0)
         bpm = 60
         while time.time() - start < 10:  # 196
@@ -268,33 +272,37 @@ def happyDance(emotion):
     updateBodyToSnake()
 
 
-
 ### HELPER FUNCTIONS ###
 
 def updateBodyToSnake():
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
 
-def goToSnakeMode(speed = 50):
-    #TODO set speed accordingly
+
+def goToSnakeMode(speed=50):
+    # TODO set speed accordingly
     ##idle state == snake
     pulsingLight()
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], speed)
     time.sleep(4)
 
-def pauseRobot(sleepTime = 0):
+
+def pauseRobot(sleepTime=0):
     time.sleep(sleepTime)
     mc.pause()
 
-def resumeRobot(sleepTime = 0):
+
+def resumeRobot(sleepTime=0):
     time.sleep(sleepTime)
     mc.resume()
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
-def stopRobot(sleepTime = 0):
+
+def stopRobot(sleepTime=0):
     time.sleep(sleepTime)
     mc.stop()
     goToSnakeMode()
     updateBodyToSnake()
+
 
 # Publisher code
 def receiveMessageFromAndroid():

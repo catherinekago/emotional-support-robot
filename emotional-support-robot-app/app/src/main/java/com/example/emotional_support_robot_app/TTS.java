@@ -13,11 +13,17 @@ public class TTS {
     public static HashMap<String, String> ttsMap;
 
     public static void initializeTTS() {
+
+        ttsMap = new HashMap<String, String>();
+        ttsMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "UniqueID");
+
         ttsObject = new TextToSpeech(Settings.mainActivity.getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status==TextToSpeech.SUCCESS){
                     int result=ttsObject.setLanguage(Locale.ENGLISH);
+                    ttsObject.setLanguage(Locale.US);
+
 
                     if (result==TextToSpeech.LANG_MISSING_DATA||result==TextToSpeech.LANG_NOT_SUPPORTED){
                         Log.i("TextToSpeech","Language Not Supported");
@@ -26,21 +32,11 @@ public class TTS {
                     ttsObject.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
-
                         }
 
                         @Override
                         public void onDone(String utteranceId) {
-                            Boolean statusIsAwake = Settings.status == StatusMessage.AWAKE;
-                            Boolean statusIsHappy = Settings.status == StatusMessage.HAPPY;
-                            Boolean statusIsWakeword = Settings.status == StatusMessage.WAKEWORD;
-                            if (!(statusIsAwake|| statusIsHappy || statusIsWakeword)){
-                                Settings.mainActivity.setListeningMode("activation");
-                                Log.d("E-S-R TTS","On Done - start ACTIVATION LISTENING again");
-                            } else {
                                 Settings.mainActivity.setListeningMode("request");
-                                Log.d("E-S-R TTS","On Done - start REQUEST again");
-                            }
                         }
 
                         @Override
@@ -54,9 +50,5 @@ public class TTS {
                 }
             }
         });
-
-        ttsObject.setLanguage(Locale.US);
-        ttsMap = new HashMap<String, String>();
-        ttsMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "UniqueID");
     }
 };

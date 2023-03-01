@@ -1,7 +1,5 @@
 package com.example.emotional_support_robot_app;
 
-import androidx.core.app.ActivityCompat;
-
 import ai.picovoice.porcupine.PorcupineManager;
 
 public class Settings {

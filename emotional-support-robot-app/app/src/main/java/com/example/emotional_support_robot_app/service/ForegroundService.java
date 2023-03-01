@@ -8,8 +8,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
@@ -19,7 +17,6 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.example.emotional_support_robot_app.FirestoreHandler;
-import com.example.emotional_support_robot_app.MainActivity;
 import com.example.emotional_support_robot_app.MediaPlayer;
 import com.example.emotional_support_robot_app.R;
 import com.example.emotional_support_robot_app.Settings;
@@ -28,13 +25,6 @@ import com.example.emotional_support_robot_app.TTS;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-
-import ai.picovoice.porcupine.Porcupine;
 import ai.picovoice.porcupine.PorcupineException;
 import ai.picovoice.porcupine.PorcupineManager;
 
@@ -88,19 +78,7 @@ public class ForegroundService extends Service {
                                     Log.e("E-S-R", "HEY ESRA WAKEWORD");
                                     // post "WAKEWORD" to database
                                     FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
-                                } else if (Settings.status == StatusMessage.PLAYING){
-                                    // Stop music if playing
-                                    if (MediaPlayer.mediaPlayer != null){
-                                        MediaPlayer.mediaPlayer.release();
-                                    }
-                                    MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
-
-                                    Log.e("E-S-R", "HEY ESRA STOP");
-                                    Settings.status = StatusMessage.STOP;
-                                    // post "STOP" to database
-                                    FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
                                 }
-
                             });
             Settings.porcupineManager.start();
         } catch (PorcupineException e) {

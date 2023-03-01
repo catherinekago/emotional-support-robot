@@ -11,10 +11,11 @@
     <string name="happy_109_title">Walking on Sunshine</string>
     <string name="happy_128_title">Sexy and I Know It</string>
 
-    <string name="WAKEWORD">Hi there!</string>
-    <string name="AWAKE">How are you feeling? Nervous or happy?</string>
+    <string name="WAKEWORD">Hi there! How are you feeling? Nervous or happy?</string>
 
     <string name="STOP">Going back to sleep ...</string>
-    <string name="PLAYING">Alright!</string>
+    <string name="PLAYING_ANXIOUS">Let\'s do some box breathing!</string>
+    <string name="PLAYING_HAPPY_109">Let\'s do a happy dance, then!</string>
+    <string name="PLAYING_HAPPY_128">Let\'s do a sexy dance, then!</string>
     <string name="SONGS">Do you want to listen to: Walking on Sunshine? or: Sexy and I know it?</string>
 </resources>

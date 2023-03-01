@@ -66,6 +66,8 @@ def on_snapshot(doc_snapshot, changes, read_time):
         wakeWordDetected()
     elif (body == "HAPPY_109" or body == "HAPPY_128" or body == "ANXIOUS"):
         emotionDetected(body)
+    elif (body == "STOP"):
+        print("stop stop")
 
     callback_done.set()
 
@@ -166,10 +168,11 @@ def happyDance(emotion):
     if emotion == "HAPPY_128":
         start = time.time()
         bpm = 90
-        while time.time() - start < 90:  # 199
+        while time.time() - start < 50:
+            docs_ref.on_snapshot(on_snapshot)
+            # 199
+            x = 3
             if bpm % 7 == 0:
-                x = 3
-                while x > 0:
                     mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
                     time.sleep(0.15)
                     mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
@@ -183,27 +186,39 @@ def happyDance(emotion):
             elif bpm % 5 == 0:
                 mc.send_angles([70, 25, 15, 15, 50, 0], 100)
                 time.sleep(0.15)
-                mc.send_angles([-70, -25, -15, -30, -56, 0], 100)
                 time.sleep(0.15)
             else:
                 # good
                 time.sleep(0.35)
-                mc.send_angles([0, 0, 0, 20, 30, 0], 100)
-                time.sleep(0.15)
-                mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
-                time.sleep(0.15)
+                while x > 0:
+                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                    time.sleep(0.15)
+                    x -= 1
             bpm -= 1
     else:
+        print("walking on sunshine")
         start = time.time()
-        bpm = 91
-        while time.time() - start < 91:  # 196
-            x = 4
-            if bpm % 8:
-                mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
-                time.sleep(0.5)
-                mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
-                time.sleep(0.5)
-            elif bpm % 7:
+        bpm = 60
+        while time.time() - start < 10:  # 196
+            x = 3
+            if bpm % 8 == 0:
+                while x > 0:
+                    time.sleep(0.15)
+                    mc.send_angle(Angle.J2.value, 50, 50)
+                    time.sleep(0.15)
+                    mc.send_angle(Angle.J2.value, -50, 50)
+                    x -= 1
+            elif bpm % 2 == 0:
+                while x > 0:
+                    time.sleep(0.35)
+                    mc.send_angles([-1.49, 20, 80, 30, 33.42, 137.9], 100)
+                    time.sleep(0.8)
+                    mc.send_angles([-1.49, 40, 55, 80, 0, 137.9], 100)
+                    time.sleep(0.15)
+                    x -= 1
+            elif bpm % 7 == 0:
                 # good
                 while x > 0:
                     time.sleep(0.35)
@@ -214,10 +229,9 @@ def happyDance(emotion):
                     x -= 1
             else:
                 while x > 0:
-                    time.sleep(0.35)
-                    mc.send_angles([20, 15, 10, 10, 20, 0], 100)
+                    mc.send_angles([1.49, -115, 153.45, -30, 33.42, -137.9], 100)
                     time.sleep(0.15)
-                    mc.send_angles([-10, 20, -10, -25, 120, 0], 100)
+                    mc.send_angles([1.49, -55, 153.45, -80, -33.42, -137.9], 100)
                     time.sleep(0.15)
                     x -= 1
             bpm -= 1

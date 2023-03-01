@@ -12,4 +12,8 @@
     <color name="happy">#254C16</color>
     <color name="angry">#711111</color>
     <color name="sad">#311B92</color>
+
+    <color name="on_beginning_of_speech">#80CBC4</color>
+    <color name="on_error">#FFCDD2</color>
+    <color name="on_anxious">#B3E5FC</color>
 </resources>

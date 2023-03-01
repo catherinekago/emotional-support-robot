@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.emotional_support_robot_app.FirestoreHandler;
 import com.example.emotional_support_robot_app.MainActivity;
+import com.example.emotional_support_robot_app.MediaPlayer;
 import com.example.emotional_support_robot_app.R;
 import com.example.emotional_support_robot_app.Settings;
 import com.example.emotional_support_robot_app.StatusMessage;
@@ -68,10 +69,28 @@ public class ForegroundService extends Service {
 
                                 // wake word detected - only react when robot is in snake state
                                 if(Settings.status == StatusMessage.SNAKE){
+                                    // Stop music if playing
+                                    if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                                        MediaPlayer.stopSong();
+                                    }
+                                    MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
                                     Settings.status = StatusMessage.WAKEWORD;
 
-                                    Log.e("E-S-R", "HEY ESRA");
+                                    Log.e("E-S-R", "HEY ESRA WAKEWORD");
                                     // post "WAKEWORD" to database
+                                    FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+                                } else if (Settings.status == StatusMessage.PLAYING){
+                                    // Stop music if playing
+                                    if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                                        MediaPlayer.stopSong();
+                                    }
+                                    MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
+                                   // Settings.status = StatusMessage.PAUSE;
+                                    //Log.e("E-S-R", "HEY ESRA PAUSE");
+                                    Log.e("E-S-R", "HEY ESRA STOP");
+                                    Settings.status = StatusMessage.STOP;
+
+                                    // post "STOP" to database
                                     FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
                                 }
 

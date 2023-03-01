@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         startService();
         setupSpeechRecognizer();
-        speechRecognizer.stopListening();
+        speechRecognizer.cancel();
         
         // Check permissions
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
@@ -98,23 +98,25 @@ public class MainActivity extends AppCompatActivity {
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
 
+            @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
             public void onResults(Bundle bundle) {
-                Log.e("E-S-R", "on results");
                 ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 utterance = (data.get(0));
-                Log.e("E-S-R", utterance);
+                Log.e("E-S-R SPEECH", utterance);
                 isListening = false;
                 errorText.setVisibility(View.INVISIBLE);
                 handleUtterance(utterance);
             }
 
             @Override
-            public void onReadyForSpeech(Bundle bundle) { Log.e("E-S-R", "ready for speech");
+            public void onReadyForSpeech(Bundle bundle) { Log.d("E-S-R SPEECH", "ready");
             }
 
+            @SuppressLint("ResourceAsColor")
             @Override
-            public void onBeginningOfSpeech() { }
+            public void onBeginningOfSpeech() {
+            }
 
             @Override public void onRmsChanged(float v) { }
 
@@ -126,14 +128,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            @SuppressLint("ResourceAsColor")
             @Override
-            public void onError(int i) {Log.e("E-S-R", "speech error " + i);
+            public void onError(int i) {
                 isListening = true;
                 errorText.setVisibility(View.VISIBLE);
-                Log.e("E-S-R", "listening failed - start listening once again");
-                speechRecognizer.cancel();
-                setupSpeechRecognizer();
-                speechRecognizer.startListening(speechRecognizerIntent);
+                //Log.d("E-S-R SPEECH", "error  " + i + "  -- try again");
+                if(Settings.status == StatusMessage.AWAKE || Settings.status == StatusMessage.HAPPY) {
+                    setListeningMode("request");
+                }
             }
 
             @Override
@@ -149,14 +152,51 @@ public class MainActivity extends AppCompatActivity {
      * selection, while for any other state (which should be AWAKE), determine the emotion.
      * @param utterance
      */
+    @RequiresApi(api = Build.VERSION_CODES.R)
     private void handleUtterance(String utterance) {
 
         utterance = utterance.toLowerCase(Locale.ROOT);
 
-        if (Settings.status != StatusMessage.HAPPY) {
+        // determine emotion for wakeword / awake
+        if (Settings.status == StatusMessage.WAKEWORD || Settings.status == StatusMessage.AWAKE) {
             determineEmotion(utterance);
-        } else {
+
+            // determine song for happy state
+        } else if (Settings.status == StatusMessage.HAPPY) {
             determineSong(utterance);
+
+            // determine action during pause
+        }  else if (Settings.status == StatusMessage.PAUSE) {
+            determineNextAction(utterance);
+        }
+
+    }
+
+    /**
+     * Determine next action depending on utterance
+     * @param utterance
+     */
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private void determineNextAction(String utterance) {
+        // RESUME
+        Boolean hasResume = utterance.contains("resume");
+        Boolean hasContinue = utterance.contains("continue");
+
+        // STOP
+        Boolean hasStop = utterance.contains("stop");
+        Boolean hasBye = utterance.contains("by");
+        Boolean hasGoodNight = utterance.contains("good night");
+        Boolean hasSleep = utterance.contains("sleep");
+
+        if (hasResume || hasContinue){
+            Settings.status = StatusMessage.RESUME;
+            FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+
+        } else if (hasStop || hasBye || hasGoodNight || hasSleep) {
+            Settings.status = StatusMessage.STOP;
+            FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+        } else {
+            handleNoMatch();
         }
 
     }
@@ -175,26 +215,41 @@ public class MainActivity extends AppCompatActivity {
         Boolean hasSexy = utterance.contains("sexy");
         Boolean hasKnow = utterance.contains("know");
 
+
         if (hasWalking || hasSunshine){
+            // Stop music if playing
+            if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                MediaPlayer.stopSong();
+            }
+            MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
+
             Settings.status = StatusMessage.HAPPY_109;
             Settings.song = R.raw.happy_109;
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
-            speechRecognizer.cancel();
         } else if (hasSexy || hasKnow) {
+            // Stop music if playing
+            if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                MediaPlayer.stopSong();
+            }
+            MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
             Settings.status = StatusMessage.HAPPY_128;
             Settings.song = R.raw.happy_128;
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
             title.setText("You selected \n \n" + Settings.status.name());
-            speechRecognizer.cancel();
-
         } else {
-            errorText.setVisibility(View.VISIBLE);
-            isListening = true;
-            speechRecognizer.cancel();
-            setupSpeechRecognizer();
-            speechRecognizer.startListening(speechRecognizerIntent);
+            handleNoMatch();
         }
+
+    }
+
+    /**
+     * Handle case where speech recognition does not return any matches
+     */
+    private void handleNoMatch() {
+        errorText.setVisibility(View.VISIBLE);
+        isListening = true;
+        setListeningMode("request");
 
     }
 
@@ -203,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
      * choose from and handle the corresponding case accordingly.
      * @param utterance The utterance returned from the speech recognition
      */
+    @SuppressLint("ResourceAsColor")
     private void determineEmotion(String utterance) {
         // ANXIETY KEYWORDS
         Boolean hasAnxious = utterance.contains("anxious");
@@ -220,19 +276,25 @@ public class MainActivity extends AppCompatActivity {
         Boolean hasDancing = utterance.contains("dancing");
 
         if (hasAnxiety || hasAnxious || hasNervous || hasBreathe || hasBreathing){
+            // Stop music if playing
+            if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                MediaPlayer.stopSong();
+            }
+            MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
             Settings.status = StatusMessage.ANXIOUS;
             title.setText("You selected \n \n" + Settings.status.name());
             FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
-            speechRecognizer.cancel();
+
         } else if (hasHappy || hasAmazing || hasAwesome || hasGood || hasGreat || hasDancing) {
+            // Stop music if playing
+            if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                MediaPlayer.stopSong();
+            }
+            MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
             Settings.status = StatusMessage.HAPPY;
             provideSongOptions();
         } else {
-            errorText.setVisibility(View.VISIBLE);
-            isListening = true;
-            speechRecognizer.cancel();
-            setupSpeechRecognizer();
-            speechRecognizer.startListening(speechRecognizerIntent);
+            handleNoMatch();
         }
     }
 
@@ -242,10 +304,8 @@ public class MainActivity extends AppCompatActivity {
     private void provideSongOptions() {
         // show title options, start listening
         title.setText("What dance music would you like? \n \n WALKING ON SUNSHINE \n or \n SEXY AND I KNOW IT");
+        setListeningMode("request");
         isListening = true;
-        speechRecognizer.cancel();
-        setupSpeechRecognizer();
-        speechRecognizer.startListening(speechRecognizerIntent);
     }
 
     /**
@@ -303,51 +363,99 @@ public class MainActivity extends AppCompatActivity {
                         switch (Settings.status){
                             case SNAKE:
                                 title.setText("Say \n \n HEY ESRA");
-                                Settings.porcupineManager.start();
+                                setListeningMode("activation");
+
+                                // Stop music if playing
+                               //if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                                 //   MediaPlayer.stopSong();
+                               // }
                                 break;
 
                             case WAKEWORD:
+                                setListeningMode("request");
+                                title.setText("Hi! Waking up...");
                                 try {
-                                    Settings.porcupineManager.stop();
-                                    title.setText("Hi! Waking up...");
                                     Thread.sleep(2000);
-                                } catch (PorcupineException | InterruptedException porcupineException) {
-                                    porcupineException.printStackTrace();
+                                } catch (InterruptedException interruptedException) {
+                                    interruptedException.printStackTrace();
                                 }
-                                break;
 
                             case AWAKE:
                                 title.setText("How do you feel? \n \n ANXIOUS, HAPPY?");
                                     if (!isListening) {
                                         isListening = true;
-                                        speechRecognizer.cancel();
-                                        setupSpeechRecognizer();
-                                        speechRecognizer.startListening(speechRecognizerIntent);
+                                        setListeningMode("request");
                                     }
                                 break;
 
                             case PLAYING:
 
                                 if (Settings.song != 0){
-                                    speechRecognizer.cancel();
+
                                     MediaPlayer.playSong(Settings.mainActivity, Settings.song);
-                                    title.setText("ESRA in action ...");
                                     // Reset song variable
                                     Settings.song = 0;
+                                }
+
+                                title.setText("ESRA in action ...");
+                                setListeningMode("activation");
+                                break;
+
+                            case PAUSE:
+                                title.setText("I am PAUSING");
+                                // Stop music if playing
+                                if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
+                                    MediaPlayer.pauseSong();
+                                }
+                                setListeningMode("request");
+
+
+                                break;
+
+                            case RESUME:
+                                title.setText("I am RESUMING");
+
+                                // Start music if it was paused
+                                if (MediaPlayer.mediaPlayer != null && MediaPlayer.length != 0){
+                                    MediaPlayer.resumeSong();
                                 }
                                 break;
 
                             case STOP:
+                                title.setText("I am STOPPING");
                                 // Stop music if playing
                                 if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
                                     MediaPlayer.stopSong();
                                 }
-
                         }
                     }
                 }
             }
         });
+    }
+
+    /**
+     * Select mode for listening for wake word or user's spoken request
+     * @param mode the mode to be selected: choose either activation or request
+     */
+    private void setListeningMode(String mode) {
+        // set app to listen for activation word
+        if (mode.equals("activation")) {
+            Settings.porcupineManager.start();
+            Log.d("E-S-R", "hey esra active");
+            speechRecognizer.cancel();
+
+            // set app to listen for spoken requests
+        } else if (mode.equals("request")) {
+            try {
+                Settings.porcupineManager.stop();
+            } catch (PorcupineException porcupineException) {
+                porcupineException.printStackTrace();
+            }
+            setupSpeechRecognizer();
+            speechRecognizer.startListening(speechRecognizerIntent);
+            //Log.d("E-S-R", "speech recognition active");
+        }
     }
 
 

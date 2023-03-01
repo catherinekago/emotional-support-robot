@@ -1,13 +1,22 @@
 package com.example.emotional_support_robot_app;
 
 public enum StatusMessage {
+    // from APP
     WAKEWORD,
-    AWAKE,
-    ANXIOUS,
-    PLAYING,
+    PAUSE,
+    RESUME,
     STOP,
+    ANXIOUS,
     HAPPY,
-    SNAKE,
     HAPPY_109,
-    HAPPY_128
+    HAPPY_128,
+
+    // from ROBOT
+    AWAKE,
+    PLAYING,
+
+
+    // from BOTH
+    SNAKE
+
 }

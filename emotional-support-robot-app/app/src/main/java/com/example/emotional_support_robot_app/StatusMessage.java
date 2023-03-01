@@ -3,8 +3,6 @@ package com.example.emotional_support_robot_app;
 public enum StatusMessage {
     // from APP
     WAKEWORD,
-    PAUSE,
-    RESUME,
     STOP,
     ANXIOUS,
     HAPPY,

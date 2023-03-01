@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.util.Log;
 
@@ -23,6 +24,7 @@ import com.example.emotional_support_robot_app.MediaPlayer;
 import com.example.emotional_support_robot_app.R;
 import com.example.emotional_support_robot_app.Settings;
 import com.example.emotional_support_robot_app.StatusMessage;
+import com.example.emotional_support_robot_app.TTS;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -70,26 +72,31 @@ public class ForegroundService extends Service {
                                 // wake word detected - only react when robot is in snake state
                                 if(Settings.status == StatusMessage.SNAKE){
                                     // Stop music if playing
-                                    if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
-                                        MediaPlayer.stopSong();
+                                    if (MediaPlayer.mediaPlayer != null){
+                                        MediaPlayer.mediaPlayer.release();
                                     }
+
                                     MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
                                     Settings.status = StatusMessage.WAKEWORD;
+                                    try {
+                                        Thread.sleep(500);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    TTS.ttsObject.speak(getResources().getString(R.string.WAKEWORD), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
 
                                     Log.e("E-S-R", "HEY ESRA WAKEWORD");
                                     // post "WAKEWORD" to database
                                     FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
                                 } else if (Settings.status == StatusMessage.PLAYING){
                                     // Stop music if playing
-                                    if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
-                                        MediaPlayer.stopSong();
+                                    if (MediaPlayer.mediaPlayer != null){
+                                        MediaPlayer.mediaPlayer.release();
                                     }
                                     MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
-                                   // Settings.status = StatusMessage.PAUSE;
-                                    //Log.e("E-S-R", "HEY ESRA PAUSE");
+
                                     Log.e("E-S-R", "HEY ESRA STOP");
                                     Settings.status = StatusMessage.STOP;
-
                                     // post "STOP" to database
                                     FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
                                 }

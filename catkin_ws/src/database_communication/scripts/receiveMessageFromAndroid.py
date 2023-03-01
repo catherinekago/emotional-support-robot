@@ -148,51 +148,44 @@ doc_watch = docs_ref.on_snapshot(on_snapshot)
 def startBreathingExercise():
     # COLOR = blue
     mc.set_color(0, 150, 255)
+    speed_to_start = 50
 
-    for i in range(2):
+    for i in range(9):
+
         docs_ref.on_snapshot(on_snapshot)
-        print(i)
-        print(bodyValue)
-
         if stop:
-            print(bodyValue)
-            stopRobot()
             break
 
-        # mc.send_angles([-25, 38, 10, -55, 50, 0], 10)
-        #mc.send_angles([-45, 38, 10, -55, 50, 0], 10)
-        mc.send_angles([-45, 0, 90, -90, 75, 0], 10)
-        print("Position 1")
-        time.sleep(5)
+        print("down left")
+        mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
+        time.sleep(4)
 
+        docs_ref.on_snapshot(on_snapshot)
         if stop:
-            print(bodyValue)
-            stopRobot()
             break
 
-        # mc.send_angles([45, 18, 42, -55, -50, 0], 7)
-        mc.send_angles([45, 0, 90, -90, -45, 0], 10)
-        print("Position 2")
-        time.sleep(5)
+        print("up left")
+        mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
+        time.sleep(4)
 
         docs_ref.on_snapshot(on_snapshot)
-
-        # mc.send_angles([45, 47, 75, -75, -50, 0], 10)
-        #mc.send_angles([45, 75, 60, -135, -45, 0], 10)
-        mc.send_angles([45, 0, 90, -90, -45, 0], 10)
-        print("Position 3")
-        time.sleep(5)
+        if stop:
+            break
+        
+        print("up right")
+        mc.send_angles([45, 30, 15, -45, -45, 0], 17)
+        time.sleep(4)
 
         docs_ref.on_snapshot(on_snapshot)
+        if stop:
+            break
 
-        # mc.send_angles([-25, 50, 75, -75, 50, 0], 10)
-        #mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
-        #mc.send_angles([-45, 50, 75, -75, 50, 0], 10)
-        mc.send_angles([-45, 0, 90, -90, 75, 0], 10)
-        print("Position 4")
-        time.sleep(5)
+        print("down right")
+        mc.send_angles([30, 45, 90, -130, -130, 0], 10)
+        time.sleep(4)
 
-        # mc.send_angles([90,45,-90,90,-90,90],50)
+        speed_to_start = 17
+
     goToSnakeMode(40)
     updateBodyToSnake()
 

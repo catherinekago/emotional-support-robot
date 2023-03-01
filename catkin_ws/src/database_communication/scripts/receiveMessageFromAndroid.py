@@ -181,7 +181,7 @@ def startBreathingExercise():
             break
 
         print("down right")
-        mc.send_angles([30, 45, 90, -130, -130, 0], 10)
+        mc.send_angles([30, 45, 90, -130, -30, 0], 10)
         time.sleep(4)
 
         speed_to_start = 17

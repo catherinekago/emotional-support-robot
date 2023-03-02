@@ -1,19 +1,26 @@
 <resources>
-    <string name="app_name">Emotional Support Robot App</string>
+    <string name="app_name">ESRA</string>
     <string name="collectionPath">android-robot-communication</string>
     <string name="sender_android">ANDROID</string>
     <string name="sender_robot">ROBOT</string>
-    <string name="body_ready">READY</string>
-    <string name="body_playing">PLAYING</string>
-    <string name="body_stop">STOP</string>
 
-    <string name="loading_playing">Emotional Support Robot in action 🤖</string>
-    <string name="loading_stop">Stopping the robot ...</string>
 
-    <string name="happy_default">What\'s your HAPPY MOOD?</string>
+    <string name="title_snake">Say HEY ESRA to wake me up </string>
+    <string name="title_stop">Say STOP or tap anywhere to stop the action</string>
 
     <string name="happy_109_title">Walking on Sunshine</string>
-    <string name="happy_109_url">https://www.youtube.com/embed/qK5KhQG06xU</string>
     <string name="happy_128_title">Sexy and I Know It</string>
-    <string name="happy_128_url">https://www.youtube.com/watch?v=wyx6JDQCslE</string>
+
+    <string name="AWAKE">Hi there! How are you feeling? Nervous or happy?</string>
+
+
+    <string name="STOP">Going back to sleep ...</string>
+    <string name="PLAYING_HAPPY_244">Let\'s do a happy dance, whoop whoop!</string>
+    <string name="PLAYING_HAPPY_208">Let\'s do a sexy dance, you sexy beast!</string>
+    <string name="SONGS">Do you want to listen to: Walking on Sunshine? or: Sexy and I know it?</string>
+    <string name="BOX_BREATHING_CYCLES">Let\'s do some box breathing. How long do you want to go? Short? Medium? Long</string>
+    <string name="PLAYING_ANXIOUS_SHORT">Okay, let\'s start your 1 minute box breathing session.</string>
+    <string name="PLAYING_ANXIOUS_MEDIUM">Okay, let\'s start your 3 minutes box breathing session..</string>
+    <string name="PLAYING_ANXIOUS_LONG">Okay, let\'s start your 10 minutes box breathing session.</string>
+    <string name="PLAYING_ANXIOUS_CONTINUE">Okay! Let\'s do another cycle.</string>
 </resources>

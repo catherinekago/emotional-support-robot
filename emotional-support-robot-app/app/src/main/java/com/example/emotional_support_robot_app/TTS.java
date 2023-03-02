@@ -36,7 +36,6 @@ public class TTS {
 
                         @Override
                         public void onDone(String utteranceId) {
-                                Settings.mainActivity.setListeningMode("request");
                         }
 
                         @Override

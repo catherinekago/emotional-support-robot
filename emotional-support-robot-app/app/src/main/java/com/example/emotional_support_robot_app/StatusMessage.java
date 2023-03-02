@@ -6,8 +6,8 @@ public enum StatusMessage {
     STOP,
     ANXIOUS,
     HAPPY,
-    HAPPY_109,
-    HAPPY_128,
+    HAPPY_244,
+    HAPPY_208,
 
     // from ROBOT
     AWAKE,

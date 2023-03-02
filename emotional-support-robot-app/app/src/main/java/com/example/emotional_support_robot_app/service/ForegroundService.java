@@ -73,7 +73,8 @@ public class ForegroundService extends Service {
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
-                                    TTS.ttsObject.speak(getResources().getString(R.string.WAKEWORD), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+                                    Settings.mainActivity.performTTS(getResources().getString(R.string.WAKEWORD));
+                                    //TTS.ttsObject.speak(getResources().getString(R.string.WAKEWORD), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
 
                                     Log.e("E-S-R", "HEY ESRA WAKEWORD");
                                     // post "WAKEWORD" to database

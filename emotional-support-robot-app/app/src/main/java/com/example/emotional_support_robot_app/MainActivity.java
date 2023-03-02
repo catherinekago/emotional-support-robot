@@ -47,11 +47,14 @@ public class MainActivity extends AppCompatActivity {
     private SpeechRecognizer speechRecognizer;
     private Intent speechRecognizerIntent;
 
-    private boolean isListening;
     private String utterance;
 
+    private long lastErrorTimeout = System.currentTimeMillis();
+    private static final long ERROR_TIMEOUT_LENGTH = 1000;
+
+    private static String LISTEN_MODE;
+
     @RequiresApi(api = Build.VERSION_CODES.R)
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -96,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
-        isListening = false;
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
 
@@ -106,15 +108,11 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 utterance = (data.get(0));
                 Log.e("E-S-R UTTERANCE", utterance);
-                isListening = false;
-                setListeningMode("mute");
                 handleUtterance(utterance);
             }
 
             @Override
-            public void onReadyForSpeech(Bundle bundle) {
-                Log.d("E-S-R SPEECH", "ready");
-            }
+            public void onReadyForSpeech(Bundle bundle) { }
 
             @Override
             public void onBeginningOfSpeech() {
@@ -132,13 +130,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(int i) {
-                isListening = true;
-                if(Settings.status != StatusMessage.SNAKE) {
-                    //Log.d("E-S-R SPEECH", "error  " + i + "  -- try request again");
-                    setListeningMode("request");
-                } else {
-                    setListeningMode("activation");
-                }
+                long currentTime = System.currentTimeMillis();
+                if(lastErrorTimeout + ERROR_TIMEOUT_LENGTH < currentTime){
+                    lastErrorTimeout = currentTime;
+                    setListeningMode(LISTEN_MODE, true);
+                    }
             }
 
             @Override
@@ -147,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onEvent(int i, Bundle bundle) {
-                Log.d("E-S-R SPEECH EVENT", String.valueOf(i));
+                //Log.d("E-S-R SPEECH EVENT", String.valueOf(i));
             }
         });
     }
@@ -181,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
     private void listenForStop(String utterance) {
         if (utterance.contains("stop")){
             communicateInput(StatusMessage.STOP);
-            TTS.ttsObject.speak(getResources().getString(R.string.STOP), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+            performTTS(getResources().getString(R.string.STOP));
         } else {
             handleNoMatch();
         }
@@ -193,28 +189,39 @@ public class MainActivity extends AppCompatActivity {
      * @param utterance The utterance returned from the speech recognition
      */
     private void determineSong(String utterance) {
-        setListeningMode("mute");
+        setListeningMode("mute", false);
 
         if (utterance.contains("walking") || utterance.contains("sunshine")){
-            Settings.song = R.raw.happy_109;
-            communicateInput(StatusMessage.HAPPY_109);
-            TTS.ttsObject.speak(getResources().getString(R.string.PLAYING_HAPPY_109), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+            Settings.song = R.raw.happy_244;
+            communicateInput(StatusMessage.HAPPY_244);
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_244));
         } else if (utterance.contains("sexy") || utterance.contains("know")) {
-            Settings.song = R.raw.happy_128;
-            communicateInput(StatusMessage.HAPPY_128);
-            TTS.ttsObject.speak(getResources().getString(R.string.PLAYING_HAPPY_128), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+            Settings.song = R.raw.happy_208;
+            communicateInput(StatusMessage.HAPPY_208);
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_208));
         } else {
             handleNoMatch();
         }
 
     }
 
+    public void performTTS(String text) {
+        Log.d("E-S-R", "start tts");
+        TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Log.d("E-S-R", "continue listening");
+        setListeningMode("request", false);
+    }
+
     /**
      * Handle case where speech recognition does not return any matches
      */
     private void handleNoMatch() {
-        isListening = true;
-        setListeningMode("request");
+        setListeningMode("request", true);
 
     }
 
@@ -236,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (hasAnxietyKeywords){
             communicateInput(StatusMessage.ANXIOUS);
-            TTS.ttsObject.speak(getResources().getString(R.string.PLAYING_ANXIOUS), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
         } else {
 
             String[] happyKeywords = new String [] {"happy", "amazing", "awesome", "good", "great", "puppy", "copy", "hubby"};
@@ -268,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
         MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
         Settings.status = status;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
-        setListeningMode("mute");
+        setListeningMode("mute", false);
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -281,9 +288,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void provideSongOptions() {
         // provide options, start listening
-        TTS.ttsObject.speak(getResources().getString(R.string.SONGS), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
-        //setListeningMode("request");
-        isListening = true;
+        performTTS(getResources().getString(R.string.SONGS));
     }
 
     /**
@@ -335,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        Log.d("E-S-R", "MESSAGE -- " + messageBody);
+                        //Log.d("E-S-R", "MESSAGE -- " + messageBody);
                         Settings.status =StatusMessage.valueOf(messageBody);
 
                         switch (Settings.status){
@@ -343,22 +348,15 @@ public class MainActivity extends AppCompatActivity {
                                 if(MediaPlayer.mediaPlayer != null){
                                     MediaPlayer.mediaPlayer.release();
                                 }
-                                setListeningMode("activation");
+                                setListeningMode("activation", false);
                                 break;
 
                             case WAKEWORD:
-                                setListeningMode("request");
-                                try {
-                                    Thread.sleep(2000);
-                                } catch (InterruptedException interruptedException) {
-                                    interruptedException.printStackTrace();
-                                }
+                                setListeningMode("request", false);
+                                Log.d("E-S-R", "wakeword");
 
                             case AWAKE:
-                                if (!isListening) {
-                                    isListening = true;
-                                    setListeningMode("request");
-                                }
+                                    setListeningMode("request", false);
                                 break;
 
                             case PLAYING:
@@ -368,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
                                     // Reset song variable
                                     Settings.song = 0;
                                 }
-                                setListeningMode("request");
+                                setListeningMode("request", false);
                                 break;
 
 
@@ -380,8 +378,7 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     Thread.sleep(500);
                                 } catch (InterruptedException interruptedException) { interruptedException.printStackTrace();}
-
-                                TTS.ttsObject.speak(getResources().getString(R.string.STOP), TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+                                performTTS(getResources().getString(R.string.STOP));
                         }
                     }
                 }
@@ -393,33 +390,42 @@ public class MainActivity extends AppCompatActivity {
      * Select mode for listening for wake word or user's spoken request
      * @param mode the mode to be selected: choose either activation or request
      */
-    public void setListeningMode(String mode) {
-        // set app to listen for activation word
-        if (mode.equals("activation")) {
-            Settings.porcupineManager.start();
-            Log.d("E-S-R", "hey esra active");
-            speechRecognizer.stopListening();
-            speechRecognizer.cancel();
+    public void setListeningMode(String mode, Boolean error) {
+        // set mode if it is null, if mode changed, or if error occurred
+        if (LISTEN_MODE == null || !LISTEN_MODE.equals(mode) || error){
 
-            // set app to listen for spoken requests
-        } else if (mode.equals("request")) {
-            try {
-                Settings.porcupineManager.stop();
-            } catch (PorcupineException porcupineException) {
-                porcupineException.printStackTrace();
+            Log.d("E-S-R SpeechRec", "ERROR " + error +" -- " + LISTEN_MODE);
+
+            // set app to listen for activation word
+            if (mode.equals("activation")) {
+                Settings.porcupineManager.start();
+                speechRecognizer.stopListening();
+                speechRecognizer.cancel();
+
+
+                // set app to listen for spoken requests
+            } else if (mode.equals("request")) {
+                try {
+                    Settings.porcupineManager.stop();
+                } catch (PorcupineException porcupineException) {
+                    porcupineException.printStackTrace();
+                }
+                setupSpeechRecognizer();
+                speechRecognizer.startListening(speechRecognizerIntent);
+            } else if (mode.equals("mute")){
+                try {
+                    Settings.porcupineManager.stop();
+                } catch (PorcupineException porcupineException) {
+                    porcupineException.printStackTrace();
+                }
+                speechRecognizer.stopListening();
+                speechRecognizer.cancel();
             }
-            setupSpeechRecognizer();
-            speechRecognizer.startListening(speechRecognizerIntent);
-            //Log.d("E-S-R", "speech recognition active");
-        } else if (mode.equals("mute")){
-            try {
-                Settings.porcupineManager.stop();
-            } catch (PorcupineException porcupineException) {
-                porcupineException.printStackTrace();
-            }
-            speechRecognizer.stopListening();
-            speechRecognizer.cancel();
+            LISTEN_MODE = mode;
+        } else {
+            Log.d("E-S-R SpeechRec", "DENIED - MODE ALREADY ACTIVE");
         }
+
     }
 
 

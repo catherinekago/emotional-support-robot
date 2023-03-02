@@ -3,6 +3,7 @@ package com.example.emotional_support_robot_app;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import static com.example.emotional_support_robot_app.MediaPlayer.*;
+import static com.example.emotional_support_robot_app.MediaPlayer.provideFeedback;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -57,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
     private static final long ERROR_TIMEOUT_LENGTH = 1000;
 
     private static String LISTEN_MODE;
+
+    private static final int SLEEP_LONG = 5000;
+    private static final int SLEEP_MEDIUM = 4000;
+    private static final int SLEEP_SHORT = 3000;
 
     private TextView title;
 
@@ -193,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
     private void determineContinuation(String utterance) {
         setListeningMode("mute", false);
         if (utterance.contains("yes") || utterance.contains("continue")) {
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_CONTINUE));
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_CONTINUE), SLEEP_SHORT,false);
             handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
         } else if (utterance.contains("no") || utterance.contains("stop") || utterance.contains("done") || utterance.contains("good") ){
             handleSuccessfulInput(StatusMessage.STOP);
@@ -211,13 +216,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (utterance.contains("short")) {
             handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
         } else if (utterance.contains("medium")) {
             handleSuccessfulInput(StatusMessage.ANXIOUS_MEDIUM);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
         } else if (utterance.contains("long")) {
             handleSuccessfulInput(StatusMessage.ANXIOUS_LONG);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
         }  else {
             handleNoMatch();
         }
@@ -246,11 +251,11 @@ public class MainActivity extends AppCompatActivity {
         if (utterance.contains("walking") || utterance.contains("sunshine")){
             Global.song = R.raw.happy_244;
             handleSuccessfulInput(StatusMessage.HAPPY_244);
-            performTTS(getResources().getString(R.string.PLAYING_HAPPY_244));
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_244), SLEEP_SHORT, false);
         } else if (utterance.contains("sexy") || utterance.contains("know")) {
             Global.song = R.raw.happy_208;
             handleSuccessfulInput(StatusMessage.HAPPY_208);
-            performTTS(getResources().getString(R.string.PLAYING_HAPPY_208));
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_208), SLEEP_SHORT, false);
         } else {
             handleNoMatch();
         }
@@ -261,12 +266,16 @@ public class MainActivity extends AppCompatActivity {
      * Perform text to speech conversion and provide a timeout before restarting speech recognition
      * @param text the text to be spoken
      */
-    public void performTTS(String text) {
+    public void performTTS(String text, int sleepTime, Boolean prompt) {
         Log.d("E-S-R", "start tts");
         TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
-        sleep(4500);
+        sleep(sleepTime);
         Log.d("E-S-R", "continue listening");
+        if (prompt) {
+            provideFeedback(R.raw.success);
+        }
         setListeningMode("request", true);
+
     }
 
     /**
@@ -274,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleNoMatch() {
        if(Global.status != StatusMessage.PLAYING){
-            performTTS("Sorry, would you mind repeating that?");
+            performTTS("Sorry, would you mind repeating that?", SLEEP_SHORT, true);
       } else {
            Log.d("E-S-R", "no match, but don't want to speak during song!");
        }
@@ -324,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void provideBoxBreathingCycleOptions() {
-        performTTS(getResources().getString(R.string.BOX_BREATHING_CYCLES));
+        performTTS(getResources().getString(R.string.BOX_BREATHING_CYCLES), SLEEP_LONG, true);
     }
 
     /**
@@ -332,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
      * @param status the identified status
      */
     private void handleSuccessfulInput(StatusMessage status) {
-        provideSuccessFeedback();
+        provideFeedback(R.raw.success);
 
         Global.status = status;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Global.status.name());
@@ -359,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void provideSongOptions() {
         // provide options, start listening
-        performTTS(getResources().getString(R.string.SONGS));
+        performTTS(getResources().getString(R.string.SONGS),  SLEEP_LONG, true);
     }
 
     /**
@@ -426,13 +435,13 @@ public class MainActivity extends AppCompatActivity {
 
                             case WAKEWORD:
                                 title.setTypeface(null, Typeface.BOLD);
-                                title.setTextColor(getResources().getColor(R.color.teal_200));
+                                title.setTextColor(getResources().getColor(R.color.teal_400));
                                 break;
 
                             case AWAKE:
                                 title.setText("");
                                 sleep(1500);
-                                performTTS(getResources().getString(R.string.AWAKE));
+                                performTTS(getResources().getString(R.string.AWAKE), SLEEP_SHORT, true);
                                 break;
 
                             case PLAYING:
@@ -448,13 +457,14 @@ public class MainActivity extends AppCompatActivity {
                                 break;
 
                             case ANXIOUS_END:
-                                askForAnotherBreathingCyle();
+                                askForAnotherBreathingCycle();
+                                break;
 
                             case STOP:
                                 title.setTypeface(null, Typeface.BOLD);
-                                title.setTextColor(getResources().getColor(R.color.teal_200));
+                                title.setTextColor(getResources().getColor(R.color.teal_400));
                                 stopSong();
-                                performTTS(getResources().getString(R.string.STOP));
+                                performTTS(getResources().getString(R.string.STOP), SLEEP_SHORT,  false);
                                 break;
                         }
                     }
@@ -466,9 +476,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * If the breathing cycle is completed, ask the user if they want to continue
      */
-    private void askForAnotherBreathingCyle() {
+    private void askForAnotherBreathingCycle() {
         setListeningMode("mute", false);
-        performTTS("Hey there. Do you want to continue breathing?");
+        performTTS("Hey there. Do you want to continue breathing?", SLEEP_SHORT, true);
 
     }
 

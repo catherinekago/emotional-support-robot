@@ -27,10 +27,10 @@ public class MediaPlayer {
     /**
      * Provide feedback for successful input recognition
      */
-    static void provideSuccessFeedback() {
+    static void provideFeedback(int soundFile) {
         // Stop music if playing
         MediaPlayer.releaseMediaPlayer();
-        MediaPlayer.playSong(Global.mainActivity, R.raw.ping);
+        MediaPlayer.playSong(Global.mainActivity, soundFile);
     }
 
 }

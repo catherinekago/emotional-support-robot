@@ -64,7 +64,7 @@ public class ForegroundService extends Service {
                                         MediaPlayer.mediaPlayer.release();
                                     }
 
-                                    MediaPlayer.playSong(Global.mainActivity, R.raw.ping);
+                                    MediaPlayer.playSong(Global.mainActivity, R.raw.success);
                                     Global.status = StatusMessage.WAKEWORD;
                                     try {
                                         Thread.sleep(500);

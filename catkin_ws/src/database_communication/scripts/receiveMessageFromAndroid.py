@@ -1,29 +1,23 @@
 # info https://towardsdatascience.com/essentials-for-working-with-firestore-in-python-372f859851f7
 
 
-# !/usr/bin/env python3
-import rospy
-from std_msgs.msg import String
-from pymycobot import MyCobot
-from pymycobot.genre import Angle
-from pymycobot.genre import Coord
-from pymycobot import MyCobotSocket
-
-# Step 1 Add Firebase Admin SDK to python app in terminal
-# If you have pip in your PATH environment variable: pip install --upgrade firebase-admin 
-# Otherwise: py -m pip install firebase-admin
-# if this does not work, do: setx PATH "%PATH%;C:\Python34\Scripts"
-
-# Step 2 connect firebase firestore instance
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
-
 import threading
 import time
 from datetime import datetime
 
-import os
+# Step 2 connect firebase firestore instance
+import firebase_admin
+# !/usr/bin/env python3
+import rospy
+from firebase_admin import credentials
+from firebase_admin import firestore
+from pymycobot import MyCobotSocket
+from std_msgs.msg import String
+
+# Step 1 Add Firebase Admin SDK to python app in terminal
+# If you have pip in your PATH environment variable: pip install --upgrade firebase-admin
+# Otherwise: py -m pip install firebase-admin
+# if this does not work, do: setx PATH "%PATH%;C:\Python34\Scripts"
 
 # Use the private key file of the service account directly.
 ## TODO: copy PATH (ABSOLUTE, not relative of the firebase credential file to cred)
@@ -54,31 +48,29 @@ function = "increment"
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
-    global stop
-    global firstSnake 
+    global firstSnake
     global bodyValue
-
-    stop = False
     print("Snapshot:")
-    print(doc_snapshot[0])
     bodyFromSnapshot = doc_snapshot[0].get("body")
     print("retrieved body ", bodyFromSnapshot)
 
     # set global variable to trigger publishing received emotion
     bodyValue = bodyFromSnapshot
-
-    if (bodyValue == "SNAKE"):
+    print(bodyValue)
+    if bodyValue == "SNAKE":
         # idle state == snake
         print("snakey")
-        stop = False
+        breakLoop = False
         if firstSnake:
-            print("First Snake") 
+            print("First Snake")
             goToSnakeMode()
             mc.stop()
-        #pulsingLight()
+        # pulsingLight()
     elif bodyValue == "WAKEWORD":
         # activate robot --> wake word by app
         print("Body is wakeword")
+        global stop
+        stop = False
         firstSnake = True
         wakeWordDetected()
         print("Robot awakened") 
@@ -86,8 +78,10 @@ def on_snapshot(doc_snapshot, changes, read_time):
         headTilting()  
         db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "NOMATCHRESPONSE"})
     elif bodyValue == "HAPPY_208" or bodyValue == "HAPPY_244" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
+        stop = False
         emotionDetected(bodyValue)
     elif bodyValue == "STOP":
+        breakLoop = True
         stop = True
         firstSnake = True
         stopRobot()
@@ -96,7 +90,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
 
 
 def pulsingLight():
-    #TODO calls on snapshot too often!
+    # TODO calls on snapshot too often!
     print("pulsating start")
     global intensity
     global function
@@ -104,7 +98,7 @@ def pulsingLight():
 
     firstSnake = False
 
-    mc.set_color(25*intensity, 25*intensity, 25*intensity)
+    mc.set_color(25 * intensity, 25 * intensity, 25 * intensity)
 
     if function == "increment":
         intensity += 1
@@ -114,11 +108,11 @@ def pulsingLight():
         function = "decrement"
     elif intensity == 0:
         function = "increment"
-   
+
     time.sleep(0.3)
 
     print("pulsating stop")
-    #docs_ref.on_snapshot(on_snapshot)
+    # docs_ref.on_snapshot(on_snapshot)
 
 
 def wakeWordDetected():
@@ -148,19 +142,18 @@ def headTilting():
 
 def emotionDetected(emotion):
     print("Received an emotion " + emotion)
-
+    ##active state
     # Reaction to emotion initiated here
     # HAPPY_BPM
     if emotion == "HAPPY_244" or emotion == "HAPPY_208":
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
         happyDance(emotion)
     elif emotion == "ANXIOUS_SHORT" or emotion == "ANXIOUS_MEDIUM" or emotion == "ANXIOUS_LONG":
         startBreathingExercise(emotion)
     else:
         # TODO Default case?
         print("Emotion: " + emotion)
-    
-    ##active state
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
@@ -173,94 +166,92 @@ doc_watch = docs_ref.on_snapshot(on_snapshot)
 def startBreathingExercise(duration):
     print("breathing with duration " + duration)
     cycles = 3
-    
+
     if duration == "ANXIOUS_MEDIUM":
         cycles = 9
     elif duration == "ANXIOUS_LONG":
         cycles = 30
-    
+
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+
     # COLOR = blue
     mc.set_color(0, 0, 255)
     mc.send_angles([-90, 30, 15, -45, 90, 0], 50)
     time.sleep(2)
 
     for i in range(cycles):
-
-        """
-        docs_ref.on_snapshot(on_snapshot)
-        print(stop)
         if stop:
             break
-        """
-    
-        #mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
-        #time.sleep(4)
+        docs_ref.on_snapshot(on_snapshot)
+        # mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
+        # time.sleep(4)
         print("up left")
         start = datetime.now()
         print(start.strftime("Start breathing in: %H:%M:%S"))
         mc.send_angles([45, 30, 15, -45, -45, 0], 17)
-        #COLOR: from dark blue to light blue
+        # COLOR: from dark blue to light blue
         mc.set_color(0, 60, 255)
         mc.set_color(0, 120, 255)
         mc.set_color(0, 180, 255)
         mc.set_color(0, 240, 255)
-        #V2: from blue to green
-        stop = datetime.now()
-        print(stop.strftime("Stop breathing in: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        # V2: from blue to green
+        stop2 = datetime.now()
+        print(stop2.strftime("Stop breathing in: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
-        #mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
-        #time.sleep(4)
+        docs_ref.on_snapshot(on_snapshot)
+
+        # mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
+        # time.sleep(4)
         print("up left")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
         mc.sync_send_angles([30, 45, 90, -130, -30, 0], 10)
-        stop = datetime.now()
-        print(stop.strftime("Hold stop: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Hold stop: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
-        #mc.send_angles([45, 30, 15, -45, -45, 0], 17)
-        #time.sleep(4)
+        docs_ref.on_snapshot(on_snapshot)
+
+        # mc.send_angles([45, 30, 15, -45, -45, 0], 17)
+        # time.sleep(4)
         print("up right")
         start = datetime.now()
         print(start.strftime("Start breathing out: %H:%M:%S"))
         mc.send_angles([-75, 45, 90, -130, 75, 0], 17)
-        #COLOR: from light blue to dark blue
+        # COLOR: from light blue to dark blue
         mc.set_color(0, 180, 255)
         mc.set_color(0, 120, 255)
         mc.set_color(0, 60, 255)
         mc.set_color(0, 0, 255)
-        stop = datetime.now()
-        print(stop.strftime("Stop breathing out: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Stop breathing out: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
-        #mc.send_angles([30, 45, 90, -130, -30, 0], 10)
-        #time.sleep(4)
+        docs_ref.on_snapshot(on_snapshot)
+
+        # mc.send_angles([30, 45, 90, -130, -30, 0], 10)
+        # time.sleep(4)
         print("down right")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
         mc.sync_send_angles([-90, 30, 15, -45, 90, 0], 10)
-        stop = datetime.now()
-        print(stop.strftime("Hold stop: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Hold stop: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
-    robotIsReady(30)
+        if stop:
+            break
+        docs_ref.on_snapshot(on_snapshot)
+    if not stop:
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
+        robotIsReady(30)
 
 def happyDance(emotion):
     if emotion == "HAPPY_208":
@@ -268,12 +259,21 @@ def happyDance(emotion):
         mc.set_color(255, 20, 147)
         start = time.time()
         minute = 60
-        song_duration = 195
+        song_duration = 192
         while time.time() - start < song_duration:
+            if stop:
+                break
+            docs_ref.on_snapshot(on_snapshot)
             start_2 = time.time()
             while time.time() - start_2 < minute:
+                if stop:
+                    break
+                docs_ref.on_snapshot(on_snapshot)
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
                         time.sleep(0.15)
@@ -282,8 +282,13 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([50, 15, 5, 20, 40, 0], 100)
                         time.sleep(0.15)
@@ -292,8 +297,13 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([70, 25, 15, 15, 50, 0], 100)
                         time.sleep(0.15)
@@ -302,10 +312,15 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 # good
                 time.sleep(0.35)
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([0, 0, 0, 20, 30, 0], 100)
                         time.sleep(0.15)
@@ -314,7 +329,8 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
-
+                if stop:
+                    break
                 if time.time() - start < song_duration:
                     mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
                     time.sleep(0.15)
@@ -349,30 +365,46 @@ def happyDance(emotion):
                     mc.send_angles([-97.47, -1.4, -49.04, -27.94, 80.77, -20.91], 100)
                 else:
                     break
+            if stop:
+                break
     else:
         start = time.time()
         # COLOR = yellow
         mc.set_color(255, 140, 0)
-        song_duration = 220
+        song_duration = 183
         minute = 60
         while time.time() - start < song_duration:
+            if stop:
+                break
+            docs_ref.on_snapshot(on_snapshot)
             start_2 = time.time()
             while time.time() - start_2 < minute:
+                if stop:
+                    break
+                docs_ref.on_snapshot(on_snapshot)
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
-                        time.sleep(0.15)
                         mc.send_angles([0, -15, -20, 20, 40, 50], 100)
                         time.sleep(0.15)
                         mc.send_angles([0, 15, 20, 20, -40, 50], 100)
+                        time.sleep(0.15)
                         x -= 1
                     else:
                         break
                 x = 3
+                if stop:
+                    break
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
-                        time.sleep(1)
+                        time.sleep(0.15)
                         mc.send_angles([-89.47, 24.52, -35.41, -2.02, 78.92, -34.27], 100)
                         time.sleep(0.1)
                         mc.send_angles([-89.56, -27.86, 49.13, -15.38, 80.59, -34.27], 100)
@@ -384,32 +416,37 @@ def happyDance(emotion):
                     else:
                         break
                 x = 3
+                if stop:
+                    break
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
-                        time.sleep(0.3)
+                        time.sleep(0.15)
                         mc.send_angles([-1.49, 115, -150, 30, -100, 137.9], 100)
-                        time.sleep(0.3)
+                        time.sleep(0.15)
                         x -= 1
                     else:
                         break
+                if stop:
+                    break
                 x = 3
-                time.sleep(0.35)
                 while x > 0:
-                    if time.time() - start < song_duration:
-                        mc.send_angles([0, 0, 0, 20, 30, 0], 100)
-                        time.sleep(0.15)
-                        mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
-                        time.sleep(0.15)
-                        x -= 3
-                    else:
+                    if stop:
                         break
+                    docs_ref.on_snapshot(on_snapshot)
+                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                    time.sleep(0.15)
+                    x -= 1
+                if stop:
+                    break
 
     print("Happy dance")
-    if not stop:
-        mc.send_angles([0, 0, 0, 0, 0, 0], 50)
-        goToSnakeMode()
-        updateBodyToSnake()
+    stopRobot()
 
 
 ### HELPER FUNCTIONS ###
@@ -437,12 +474,12 @@ def resumeRobot(sleepTime=0):
 
 
 def stopRobot(sleepTime=0):
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
     global stop
     stop = True
     time.sleep(sleepTime)
     mc.stop()
     goToSnakeMode()
-    updateBodyToSnake()
 
 
 # Publisher code

@@ -47,17 +47,15 @@ callback_done = threading.Event()
 stop = False
 bodyValue = "SNAKE"
 breakLoop = False
-#TODO
 firstSnake = True
-snakeCounter = 0
+intensity = 0
+function = "increment"
 
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
-    ## global variables
     global stop
     global firstSnake 
-    global snakeCounter
     global bodyValue
 
     stop = False
@@ -72,15 +70,12 @@ def on_snapshot(doc_snapshot, changes, read_time):
     if (bodyValue == "SNAKE"):
         # idle state == snake
         print("snakey")
-        mc.stop()
-        goToSnakeMode()
-        breakLoop = False
-        """
+        stop = False
         if firstSnake:
-          print("First Snake")  
-        else:
-            pulsingLight(counter)
-        """
+            print("First Snake") 
+            goToSnakeMode()
+            mc.stop()
+        #pulsingLight()
     elif bodyValue == "WAKEWORD":
         # activate robot --> wake word by app
         print("Body is wakeword")
@@ -91,20 +86,40 @@ def on_snapshot(doc_snapshot, changes, read_time):
     elif bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
         emotionDetected(bodyValue)
     elif bodyValue == "STOP":
-        breakLoop = True
+        stop = True
+        firstSnake = True
         stopRobot()
 
     callback_done.set()
 
 
-def pulsingLight(intensity):
-    mc.set_color(25*intensity,25*intensity,25*intensity)
-    time.sleep(0.1)
-    docs_ref.on_snapshot(on_snapshot)
+def pulsingLight():
+    #TODO calls on snapshot too often!
+    print("pulsating start")
+    global intensity
+    global function
+    global firstSnake
+
+    firstSnake = False
+
+    mc.set_color(25*intensity, 25*intensity, 25*intensity)
+
+    if function == "increment":
+        intensity += 1
+    elif function == "decrement":
+        intensity -= 1
+    if intensity == 5:
+        function = "decrement"
+    elif intensity == 0:
+        function = "increment"
+   
+    time.sleep(0.3)
+
+    print("pulsating stop")
+    #docs_ref.on_snapshot(on_snapshot)
 
 
 def wakeWordDetected(speed = 50):
-
     ##listening state
     mc.send_angles([0, 0, 0, 0, 0, 0], speed)
     time.sleep(1.1)
@@ -113,26 +128,16 @@ def wakeWordDetected(speed = 50):
     mc.set_color(240, 240, 240)
 
     # listening routine
-    # TODO: add more listening signs (tilting the head) -- should be loop
     mc.send_angles([0, 0, 0, -10, -20, 0], 50)
-    # mc.send_angle(Angle.J5.value, -20, 80)
-    # mc.send_angle(Angle.J4.value, -10, 80)
     time.sleep(0.5)
-    # mc.send_angle(Angle.J5.value, 20, 80)
-    # mc.send_angle(Angle.J4.value, 10, 80)
     mc.send_angles([0, 0, 0, 10, 20, 0], 50)
     time.sleep(0.5)
-    # mc.send_angle(Angle.J5.value, -10, 80)
-    # mc.send_angle(Angle.J4.value, 0, 80)
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1)
 
 
 def emotionDetected(emotion):
     print("Received an emotion " + emotion)
-
-    ##active state
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
     # Reaction to emotion initiated here
     # HAPPY_BPM
@@ -143,6 +148,9 @@ def emotionDetected(emotion):
     else:
         # TODO Default case?
         print("Emotion: " + emotion)
+    
+    ##active state
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
@@ -408,7 +416,7 @@ def goToSnakeMode(speed=50):
     mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], speed)
     time.sleep(4)
     #TODO set to 130, 130, 130 if pulsing does not work
-    mc.set_color(0, 0, 0)
+    mc.set_color(50, 50, 50)
 
 
 def pauseRobot(sleepTime=0):

@@ -46,6 +46,7 @@ stop = False
 bodyValue = "SNAKE"
 breakLoop = False
 
+
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
     global stop
@@ -105,17 +106,17 @@ def wakeWordDetected():
 
     # listening routine
     # TODO: add more listening signs (tilting the head) -- should be loop
-    mc.send_angles([0,0,0,-10,-20,0], 50)
-    #mc.send_angle(Angle.J5.value, -20, 80)
-    #mc.send_angle(Angle.J4.value, -10, 80)
+    mc.send_angles([0, 0, 0, -10, -20, 0], 50)
+    # mc.send_angle(Angle.J5.value, -20, 80)
+    # mc.send_angle(Angle.J4.value, -10, 80)
     time.sleep(0.5)
-    #mc.send_angle(Angle.J5.value, 20, 80)
-    #mc.send_angle(Angle.J4.value, 10, 80)
-    mc.send_angles([0,0,0,10,20,0], 50)
+    # mc.send_angle(Angle.J5.value, 20, 80)
+    # mc.send_angle(Angle.J4.value, 10, 80)
+    mc.send_angles([0, 0, 0, 10, 20, 0], 50)
     time.sleep(0.5)
-    #mc.send_angle(Angle.J5.value, -10, 80)
-    #mc.send_angle(Angle.J4.value, 0, 80)
-    mc.send_angles([0,0,0,0,0,0], 50)
+    # mc.send_angle(Angle.J5.value, -10, 80)
+    # mc.send_angle(Angle.J4.value, 0, 80)
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
     time.sleep(1)
 
 
@@ -138,10 +139,12 @@ def emotionDetected(emotion):
     # TODO: user can interrupt routine
     # call stopRobot() or pauseRobot() and break (if you're in a loop)
 
+
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
 # Watch the document
 doc_watch = docs_ref.on_snapshot(on_snapshot)
+
 
 ### EMOTION FUNCTIONS ###
 
@@ -171,7 +174,7 @@ def startBreathingExercise():
         docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        
+
         print("up right")
         mc.send_angles([45, 30, 15, -45, -45, 0], 17)
         time.sleep(4)
@@ -188,7 +191,6 @@ def startBreathingExercise():
 
     goToSnakeMode(40)
     updateBodyToSnake()
-
 
 
 def happyDance(emotion):
@@ -233,47 +235,58 @@ def happyDance(emotion):
         start = time.time()
         # COLOR = yellow
         mc.set_color(255, 140, 0)
-        bpm = 196
-        while time.time() - start < 196:
-            if stop:
-                break
-            docs_ref.on_snapshot(on_snapshot)
-            x = 3
-            if bpm % 4 == 0:
+        song_duration = 220
+        minute = 60
+        while time.time() - start < song_duration:
+            start_2 = time.time()
+            while time.time() - start_2 < minute:
+                x = 3
                 while x > 0:
-                    time.sleep(0.15)
-                    mc.send_angles([0, -15, -20, 20, 40, 50], 100)
-                    time.sleep(0.15)
-                    mc.send_angles([0, 15, 20, 20, -40, 50], 100)
-                    x -= 1
-            elif bpm % 6 == 0:
+                    if time.time() - start < 228:
+                        time.sleep(0.15)
+                        mc.send_angles([0, -15, -20, 20, 40, 50], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([0, 15, 20, 20, -40, 50], 100)
+                        x -= 1
+                    else:
+                        break
+                x = 3
                 while x > 0:
-                    mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
-                    time.sleep(1)
-                    mc.send_angles([-89.47, 24.52, -35.41, -2.02, 78.92, -34.27], 100)
-                    time.sleep(0.1)
-                    mc.send_angles([-89.56, -27.86, 49.13, -15.38, 80.59, -34.27], 100)
-                    time.sleep(0.1)
-                    mc.send_angles([2.72, -0.79, 2.28, -0.17, -6.06, -2.19], 100)
-                    time.sleep(0.1)
-                    mc.send_angles([2.9, 4.21, 84.37, 41.66, -6.06, -2.19], 100)
-                    x -= 1
-            elif bpm % 5 == 0:
+                    if time.time() - start < song_duration:
+                        mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
+                        time.sleep(1)
+                        mc.send_angles([-89.47, 24.52, -35.41, -2.02, 78.92, -34.27], 100)
+                        time.sleep(0.1)
+                        mc.send_angles([-89.56, -27.86, 49.13, -15.38, 80.59, -34.27], 100)
+                        time.sleep(0.1)
+                        mc.send_angles([2.72, -0.79, 2.28, -0.17, -6.06, -2.19], 100)
+                        time.sleep(0.1)
+                        mc.send_angles([2.9, 4.21, 84.37, 41.66, -6.06, -2.19], 100)
+                        x -= 1
+                    else:
+                        break
+                x = 3
                 while x > 0:
-                    mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
-                    time.sleep(0.3)
-                    mc.send_angles([-1.49, 115, -150, 30, -100, 137.9], 100)
-                    time.sleep(0.3)
-                    x -= 1
-            else:
+                    if time.time() - start < song_duration:
+                        mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
+                        time.sleep(0.3)
+                        mc.send_angles([-1.49, 115, -150, 30, -100, 137.9], 100)
+                        time.sleep(0.3)
+                        x -= 1
+                    else:
+                        break
+                x = 3
                 time.sleep(0.35)
                 while x > 0:
-                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
-                    time.sleep(0.15)
-                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
-                    time.sleep(0.15)
-                    x -= 1
-            bpm -= 1
+                    if time.time() - start < song_duration:
+                        mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                        time.sleep(0.15)
+                        x -= 3
+                    else:
+                        break
+
     print("Happy dance")
     if not stop:
         mc.send_angles([0, 0, 0, 0, 0, 0], 50)

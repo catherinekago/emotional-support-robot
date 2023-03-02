@@ -1,29 +1,23 @@
 # info https://towardsdatascience.com/essentials-for-working-with-firestore-in-python-372f859851f7
 
 
-# !/usr/bin/env python3
-import rospy
-from std_msgs.msg import String
-from pymycobot import MyCobot
-from pymycobot.genre import Angle
-from pymycobot.genre import Coord
-from pymycobot import MyCobotSocket
-
-# Step 1 Add Firebase Admin SDK to python app in terminal
-# If you have pip in your PATH environment variable: pip install --upgrade firebase-admin 
-# Otherwise: py -m pip install firebase-admin
-# if this does not work, do: setx PATH "%PATH%;C:\Python34\Scripts"
-
-# Step 2 connect firebase firestore instance
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
-
 import threading
 import time
 from datetime import datetime
 
-import os
+# Step 2 connect firebase firestore instance
+import firebase_admin
+# !/usr/bin/env python3
+import rospy
+from firebase_admin import credentials
+from firebase_admin import firestore
+from pymycobot import MyCobotSocket
+from std_msgs.msg import String
+
+# Step 1 Add Firebase Admin SDK to python app in terminal
+# If you have pip in your PATH environment variable: pip install --upgrade firebase-admin
+# Otherwise: py -m pip install firebase-admin
+# if this does not work, do: setx PATH "%PATH%;C:\Python34\Scripts"
 
 # Use the private key file of the service account directly.
 ## TODO: copy PATH (ABSOLUTE, not relative of the firebase credential file to cred)
@@ -63,7 +57,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
     # set global variable to trigger publishing received emotion
     bodyValue = bodyFromSnapshot
 
-    if (bodyValue == "SNAKE"):
+    if bodyValue == "SNAKE":
         # idle state == snake
         print("snakey")
         breakLoop = False
@@ -94,7 +88,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
 
 
 def pulsingLight():
-    #TODO calls on snapshot too often!
+    # TODO calls on snapshot too often!
     print("pulsating start")
     global intensity
     global function
@@ -102,7 +96,7 @@ def pulsingLight():
 
     firstSnake = False
 
-    mc.set_color(25*intensity, 25*intensity, 25*intensity)
+    mc.set_color(25 * intensity, 25 * intensity, 25 * intensity)
 
     if function == "increment":
         intensity += 1
@@ -116,10 +110,10 @@ def pulsingLight():
     time.sleep(0.3)
 
     print("pulsating stop")
-    #docs_ref.on_snapshot(on_snapshot)
+    # docs_ref.on_snapshot(on_snapshot)
 
 
-def wakeWordDetected(speed = 50):
+def wakeWordDetected(speed=50):
     ##listening state
     mc.send_angles([0, 0, 0, 0, 0, 0], speed)
     time.sleep(1.1)
@@ -174,7 +168,6 @@ def startBreathingExercise(duration):
     time.sleep(2)
 
     for i in range(cycles):
-
         """
         docs_ref.on_snapshot(on_snapshot)
         print(stop)
@@ -182,18 +175,18 @@ def startBreathingExercise(duration):
             break
         """
 
-        #mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
-        #time.sleep(4)
+        # mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
+        # time.sleep(4)
         print("up left")
         start = datetime.now()
         print(start.strftime("Start breathing in: %H:%M:%S"))
         mc.send_angles([45, 30, 15, -45, -45, 0], 17)
-        #COLOR: from dark blue to light blue
+        # COLOR: from dark blue to light blue
         mc.set_color(0, 60, 255)
         mc.set_color(0, 120, 255)
         mc.set_color(0, 180, 255)
         mc.set_color(0, 240, 255)
-        #V2: from blue to green
+        # V2: from blue to green
         stop = datetime.now()
         print(stop.strftime("Stop breathing in: %H:%M:%S"))
         print("Difference: " + str((stop - start).seconds))
@@ -203,8 +196,8 @@ def startBreathingExercise(duration):
         if stop:
             break
         """
-        #mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
-        #time.sleep(4)
+        # mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
+        # time.sleep(4)
         print("up left")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
@@ -218,13 +211,13 @@ def startBreathingExercise(duration):
         if stop:
             break
         """
-        #mc.send_angles([45, 30, 15, -45, -45, 0], 17)
-        #time.sleep(4)
+        # mc.send_angles([45, 30, 15, -45, -45, 0], 17)
+        # time.sleep(4)
         print("up right")
         start = datetime.now()
         print(start.strftime("Start breathing out: %H:%M:%S"))
         mc.send_angles([-75, 45, 90, -130, 75, 0], 17)
-        #COLOR: from light blue to dark blue
+        # COLOR: from light blue to dark blue
         mc.set_color(0, 180, 255)
         mc.set_color(0, 120, 255)
         mc.set_color(0, 60, 255)
@@ -238,8 +231,8 @@ def startBreathingExercise(duration):
         if stop:
             break
         """
-        #mc.send_angles([30, 45, 90, -130, -30, 0], 10)
-        #time.sleep(4)
+        # mc.send_angles([30, 45, 90, -130, -30, 0], 10)
+        # time.sleep(4)
         print("down right")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
@@ -250,6 +243,7 @@ def startBreathingExercise(duration):
 
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
     wakeWordDetected(40)
+
 
 def happyDance(emotion):
     if emotion == "HAPPY_208":
@@ -472,12 +466,12 @@ def resumeRobot(sleepTime=0):
 
 
 def stopRobot(sleepTime=0):
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
     global stop
     stop = True
     time.sleep(sleepTime)
     mc.stop()
     goToSnakeMode()
-    updateBodyToSnake()
 
 
 # Publisher code

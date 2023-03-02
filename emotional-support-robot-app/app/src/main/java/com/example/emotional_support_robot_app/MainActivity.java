@@ -164,10 +164,34 @@ public class MainActivity extends AppCompatActivity {
             // determine song for happy state
         } else if (Settings.status == StatusMessage.HAPPY) {
             determineSong(utterance);
+            // determine cycle length for anxious state
+        } else if (Settings.status == StatusMessage.ANXIOUS) {
+            determineCycleLength(utterance);
         } else if (Settings.status == StatusMessage.PLAYING){
             listenForStop(utterance);
         }
 
+    }
+
+    /**
+     * Analyze utterance for cycle length for box breathing
+     * @param utterance the utterance that was provided via speech input
+     */
+    private void determineCycleLength(String utterance) {
+        setListeningMode("mute", false);
+
+        if (utterance.contains("short")) {
+            communicateInput(StatusMessage.ANXIOUS_SHORT);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+        } else if (utterance.contains("medium")) {
+            communicateInput(StatusMessage.ANXIOUS_MEDIUM);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+        } else if (utterance.contains("long")) {
+            communicateInput(StatusMessage.ANXIOUS_LONG);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+        }  else {
+            handleNoMatch();
+        }
     }
 
     /**
@@ -205,6 +229,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Perform text to speech conversion and provide a timeout before restarting speech recognition
+     * @param text the text to be spoken
+     */
     public void performTTS(String text) {
         Log.d("E-S-R", "start tts");
         TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
@@ -221,7 +249,8 @@ public class MainActivity extends AppCompatActivity {
      * Handle case where speech recognition does not return any matches
      */
     private void handleNoMatch() {
-        setListeningMode("request", true);
+        performTTS("Sorry, would you mind repeating that?");
+        //setListeningMode("request", true);
 
     }
 
@@ -243,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (hasAnxietyKeywords){
             communicateInput(StatusMessage.ANXIOUS);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
+            provideBoxBreathingCycleOptions();
         } else {
 
             String[] happyKeywords = new String [] {"happy", "amazing", "awesome", "good", "great", "puppy", "copy", "hubby"};
@@ -261,6 +290,10 @@ public class MainActivity extends AppCompatActivity {
                 handleNoMatch();
             }
         }
+    }
+
+    private void provideBoxBreathingCycleOptions() {
+        performTTS(getResources().getString(R.string.BOX_BREATHING_CYCLES));
     }
 
     /**
@@ -340,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
                     String tag = document.getDocument().getId().split("_")[0];
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        //Log.d("E-S-R", "MESSAGE -- " + messageBody);
+                        Log.d("E-S-R", "FIREBASE -- received " + messageBody);
                         Settings.status =StatusMessage.valueOf(messageBody);
 
                         switch (Settings.status){
@@ -353,7 +386,6 @@ public class MainActivity extends AppCompatActivity {
 
                             case WAKEWORD:
                                 setListeningMode("request", false);
-                                Log.d("E-S-R", "wakeword");
 
                             case AWAKE:
                                     setListeningMode("request", false);

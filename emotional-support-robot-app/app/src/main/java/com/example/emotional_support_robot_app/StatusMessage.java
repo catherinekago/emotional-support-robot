@@ -4,7 +4,9 @@ public enum StatusMessage {
     // from APP
     WAKEWORD,
     STOP,
-    ANXIOUS,
+    ANXIOUS_SHORT,
+    ANXIOUS_MEDIUM,
+    ANXIOUS_LONG,
     HAPPY,
     HAPPY_244,
     HAPPY_208,
@@ -14,7 +16,7 @@ public enum StatusMessage {
     PLAYING,
 
 
-    // from BOTH
+    ANXIOUS, // from BOTH
     SNAKE
 
 }

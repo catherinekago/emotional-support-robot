@@ -56,7 +56,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
 
     # set global variable to trigger publishing received emotion
     bodyValue = bodyFromSnapshot
-
+    print(bodyValue)
     if bodyValue == "SNAKE":
         # idle state == snake
         print("snakey")
@@ -74,7 +74,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
         firstSnake = True
         db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
         wakeWordDetected()
-    elif bodyValue == "HAPPY_244" or bodyValue == "HAPPY_208" or bodyValue == "ANXIOUS":
+    elif bodyValue == "HAPPY_244" or bodyValue == "HAPPY_208" or bodyValue == "ANXIOUS" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
         stop = False
         print("Robot awakened")
         emotionDetected(bodyValue)
@@ -133,10 +133,10 @@ def wakeWordDetected(speed=50):
 def emotionDetected(emotion):
     print("Received an emotion " + emotion)
     ##active state
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
     # Reaction to emotion initiated here
     # HAPPY_BPM
     if emotion == "HAPPY_244" or emotion == "HAPPY_208":
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
         happyDance(emotion)
     elif emotion == "ANXIOUS_SHORT" or emotion == "ANXIOUS_MEDIUM" or emotion == "ANXIOUS_LONG":
         startBreathingExercise(emotion)
@@ -162,19 +162,17 @@ def startBreathingExercise(duration):
     elif duration == "ANXIOUS_LONG":
         cycles = 30
 
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+
     # COLOR = blue
     mc.set_color(0, 0, 255)
     mc.send_angles([-90, 30, 15, -45, 90, 0], 50)
     time.sleep(2)
 
     for i in range(cycles):
-        """
-        docs_ref.on_snapshot(on_snapshot)
-        print(stop)
         if stop:
             break
-        """
-
+        docs_ref.on_snapshot(on_snapshot)
         # mc.send_angles([-75, 45, 90, -130, 75, 0], speed_to_start)
         # time.sleep(4)
         print("up left")
@@ -187,30 +185,28 @@ def startBreathingExercise(duration):
         mc.set_color(0, 180, 255)
         mc.set_color(0, 240, 255)
         # V2: from blue to green
-        stop = datetime.now()
-        print(stop.strftime("Stop breathing in: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Stop breathing in: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
+        docs_ref.on_snapshot(on_snapshot)
+
         # mc.send_angles([-90, 30, 15, -45, 90, 0], 10)
         # time.sleep(4)
         print("up left")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
         mc.sync_send_angles([30, 45, 90, -130, -30, 0], 10)
-        stop = datetime.now()
-        print(stop.strftime("Hold stop: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Hold stop: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
+        docs_ref.on_snapshot(on_snapshot)
+
         # mc.send_angles([45, 30, 15, -45, -45, 0], 17)
         # time.sleep(4)
         print("up right")
@@ -222,27 +218,30 @@ def startBreathingExercise(duration):
         mc.set_color(0, 120, 255)
         mc.set_color(0, 60, 255)
         mc.set_color(0, 0, 255)
-        stop = datetime.now()
-        print(stop.strftime("Stop breathing out: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Stop breathing out: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-        """
-        docs_ref.on_snapshot(on_snapshot)
         if stop:
             break
-        """
+        docs_ref.on_snapshot(on_snapshot)
+
         # mc.send_angles([30, 45, 90, -130, -30, 0], 10)
         # time.sleep(4)
         print("down right")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
         mc.sync_send_angles([-90, 30, 15, -45, 90, 0], 10)
-        stop = datetime.now()
-        print(stop.strftime("Hold stop: %H:%M:%S"))
-        print("Difference: " + str((stop - start).seconds))
+        stop2 = datetime.now()
+        print(stop2.strftime("Hold stop: %H:%M:%S"))
+        print("Difference: " + str((stop2 - start).seconds))
 
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
-    wakeWordDetected(40)
+        if stop:
+            break
+        docs_ref.on_snapshot(on_snapshot)
+    if not stop:
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
+        wakeWordDetected(40)
 
 
 def happyDance(emotion):

@@ -249,9 +249,6 @@ def startBreathingExercise(duration):
         print(stop.strftime("Hold stop: %H:%M:%S"))
         print("Difference: " + str((stop - start).seconds))
 
-
-    #goToSnakeMode(40)
-    #updateBodyToSnake()
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
     wakeWordDetected(40)   
 
@@ -413,9 +410,8 @@ def updateBodyToSnake():
 
 def goToSnakeMode(speed=50):
     ##idle state == snake, speed accordingly
-    mc.send_angles([88.68, -138.51, 155.65, -128.05, -9.93, -15.29], speed)
+    mc.send_angles([88.68, -138.51, 155.65, -128.05, -90, -15.29], speed)
     time.sleep(4)
-    #TODO set to 130, 130, 130 if pulsing does not work
     mc.set_color(50, 50, 50)
 
 

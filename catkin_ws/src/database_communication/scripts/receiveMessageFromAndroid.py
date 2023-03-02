@@ -49,8 +49,6 @@ breakLoop = False
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
-    global stop
-    stop = False
     print("Initialize Robot")
 
     print(doc_snapshot[0])
@@ -69,10 +67,14 @@ def on_snapshot(doc_snapshot, changes, read_time):
         goToSnakeMode()
     elif bodyValue == "WAKEWORD":
         print("Body is wakeword")
+        global stop
+        stop = False
         wakeWordDetected()
-    elif bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS":
+    elif bodyValue == "HAPPY_244" or bodyValue == "HAPPY_208" or bodyValue == "ANXIOUS":
+        stop = False
         emotionDetected(bodyValue)
     elif bodyValue == "STOP":
+        stop = True
         breakLoop = True
         stopRobot()
 
@@ -128,7 +130,7 @@ def emotionDetected(emotion):
 
     # Reaction to emotion initiated here
     # HAPPY_BPM
-    if emotion == "HAPPY_109" or emotion == "HAPPY_128":
+    if emotion == "HAPPY_244" or emotion == "HAPPY_208":
         happyDance(emotion)
     elif emotion == "ANXIOUS":
         startBreathingExercise()
@@ -194,17 +196,26 @@ def startBreathingExercise():
 
 
 def happyDance(emotion):
-    if emotion == "HAPPY_128":
+    if emotion == "HAPPY_208":
         # COLOR = pink
         mc.set_color(255, 20, 147)
         start = time.time()
         minute = 60
-        song_duration = 195
+        song_duration = 192
         while time.time() - start < song_duration:
+            if stop:
+                break
+            docs_ref.on_snapshot(on_snapshot)
             start_2 = time.time()
             while time.time() - start_2 < minute:
+                if stop:
+                    break
+                docs_ref.on_snapshot(on_snapshot)
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
                         time.sleep(0.15)
@@ -213,8 +224,13 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([50, 15, 5, 20, 40, 0], 100)
                         time.sleep(0.15)
@@ -223,8 +239,13 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([70, 25, 15, 15, 50, 0], 100)
                         time.sleep(0.15)
@@ -233,10 +254,15 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
+                if stop:
+                    break
                 x = 3
                 # good
                 time.sleep(0.35)
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([0, 0, 0, 20, 30, 0], 100)
                         time.sleep(0.15)
@@ -245,7 +271,8 @@ def happyDance(emotion):
                     else:
                         break
                     x -= 1
-
+                if stop:
+                    break
                 if time.time() - start < song_duration:
                     mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
                     time.sleep(0.15)
@@ -280,30 +307,46 @@ def happyDance(emotion):
                     mc.send_angles([-97.47, -1.4, -49.04, -27.94, 80.77, -20.91], 100)
                 else:
                     break
+            if stop:
+                break
     else:
         start = time.time()
         # COLOR = yellow
         mc.set_color(255, 140, 0)
-        song_duration = 220
+        song_duration = 175
         minute = 60
         while time.time() - start < song_duration:
+            if stop:
+                break
+            docs_ref.on_snapshot(on_snapshot)
             start_2 = time.time()
             while time.time() - start_2 < minute:
+                if stop:
+                    break
+                docs_ref.on_snapshot(on_snapshot)
                 x = 3
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
-                        time.sleep(0.15)
                         mc.send_angles([0, -15, -20, 20, 40, 50], 100)
                         time.sleep(0.15)
                         mc.send_angles([0, 15, 20, 20, -40, 50], 100)
+                        time.sleep(0.15)
                         x -= 1
                     else:
                         break
                 x = 3
+                if stop:
+                    break
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
-                        time.sleep(1)
+                        time.sleep(0.15)
                         mc.send_angles([-89.47, 24.52, -35.41, -2.02, 78.92, -34.27], 100)
                         time.sleep(0.1)
                         mc.send_angles([-89.56, -27.86, 49.13, -15.38, 80.59, -34.27], 100)
@@ -315,32 +358,37 @@ def happyDance(emotion):
                     else:
                         break
                 x = 3
+                if stop:
+                    break
                 while x > 0:
+                    if stop:
+                        break
+                    docs_ref.on_snapshot(on_snapshot)
                     if time.time() - start < song_duration:
                         mc.send_angles([-1.49, 55, -150, 80, 100, 137.9], 100)
-                        time.sleep(0.3)
+                        time.sleep(0.15)
                         mc.send_angles([-1.49, 115, -150, 30, -100, 137.9], 100)
-                        time.sleep(0.3)
+                        time.sleep(0.15)
                         x -= 1
                     else:
                         break
+                if stop:
+                    break
                 x = 3
-                time.sleep(0.35)
                 while x > 0:
-                    if time.time() - start < song_duration:
-                        mc.send_angles([0, 0, 0, 20, 30, 0], 100)
-                        time.sleep(0.15)
-                        mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
-                        time.sleep(0.15)
-                        x -= 3
-                    else:
+                    if stop:
                         break
+                    docs_ref.on_snapshot(on_snapshot)
+                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                    time.sleep(0.15)
+                    x -= 1
+                if stop:
+                    break
 
     print("Happy dance")
-    if not stop:
-        mc.send_angles([0, 0, 0, 0, 0, 0], 50)
-        goToSnakeMode()
-        updateBodyToSnake()
+    stopRobot()
 
 
 ### HELPER FUNCTIONS ###

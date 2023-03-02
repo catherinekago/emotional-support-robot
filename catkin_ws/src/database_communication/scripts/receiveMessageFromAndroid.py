@@ -313,7 +313,7 @@ def happyDance(emotion):
         start = time.time()
         # COLOR = yellow
         mc.set_color(255, 140, 0)
-        song_duration = 175
+        song_duration = 178
         minute = 60
         while time.time() - start < song_duration:
             if stop:

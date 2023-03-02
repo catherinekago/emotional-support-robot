@@ -198,39 +198,88 @@ def happyDance(emotion):
         # COLOR = pink
         mc.set_color(255, 20, 147)
         start = time.time()
-        bpm = 199
-        while time.time() - start < 199:
-            if stop:
-                break
-            docs_ref.on_snapshot(on_snapshot)
-            x = 3
-            if bpm % 8 == 0:
+        minute = 60
+        song_duration = 195
+        while time.time() - start < song_duration:
+            start_2 = time.time()
+            while time.time() - start_2 < minute:
+                x = 3
                 while x > 0:
-                    mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
-                    time.sleep(0.15)
-                    mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
-                    time.sleep(0.15)
+                    if time.time() - start < song_duration:
+                        mc.send_angles([-1.49, 115, -153.45, 30, -33.42, 137.9], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([-1.49, 55, -153.45, 80, 33.42, 137.9], 100)
+                        time.sleep(0.15)
+                    else:
+                        break
                     x -= 1
-            elif bpm % 2 == 0:
-                mc.send_angles([50, 15, 5, 20, 40, 0], 100)
-                time.sleep(0.15)
-                mc.send_angles([-50, -15, -5, -30, -56, 0], 100)
-                time.sleep(0.15)
-            elif bpm % 5 == 0:
-                mc.send_angles([70, 25, 15, 15, 50, 0], 100)
-                time.sleep(0.15)
-                mc.send_angles([-70, -25, -15, -30, -56, 0], 100)
-                time.sleep(0.15)
-            else:
+                x = 3
+                while x > 0:
+                    if time.time() - start < song_duration:
+                        mc.send_angles([50, 15, 5, 20, 40, 0], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([-50, -15, -5, -30, -56, 0], 100)
+                        time.sleep(0.15)
+                    else:
+                        break
+                    x -= 1
+                x = 3
+                while x > 0:
+                    if time.time() - start < song_duration:
+                        mc.send_angles([70, 25, 15, 15, 50, 0], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([-70, -25, -15, -30, -56, 0], 100)
+                        time.sleep(0.15)
+                    else:
+                        break
+                    x -= 1
+                x = 3
                 # good
                 time.sleep(0.35)
                 while x > 0:
-                    mc.send_angles([0, 0, 0, 20, 30, 0], 100)
-                    time.sleep(0.15)
-                    mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
-                    time.sleep(0.15)
+                    if time.time() - start < song_duration:
+                        mc.send_angles([0, 0, 0, 20, 30, 0], 100)
+                        time.sleep(0.15)
+                        mc.send_angles([-10, 20, 0, -45, -30, 0], 100)
+                        time.sleep(0.15)
+                    else:
+                        break
                     x -= 1
-            bpm -= 1
+
+                if time.time() - start < song_duration:
+                    mc.send_angles([-90.0, 3.16, 0.08, -3.07, 90.52, -43.94], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([22.58, 13.62, 22.5, 23.2, -88.24, -38.75], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-99.84, 3.86, -19.51, -36.29, -162.24, -25.4], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-99.84, -21.18, -23.73, -45.7, 87.53, -25.57], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([87.53, -5.18, 7.11, -2.63, 87.18, -25.66], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([88.15, -30.05, 47.19, -2.37, 87.09, -25.66], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([88.15, 30.84, -50.44, -2.37, 87.01, -25.66], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([88.06, -30.41, 57.83, -2.37, 87.01, -25.66], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([96.32, 11.42, 71.36, 58.79, -91.49, -18.54], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-73.03, -75.67, 77.69, 54.14, 80.77, -20.83], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-97.64, -1.4, -17.4, -24.52, 81.38, -20.83], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-97.47, -1.4, -49.04, -27.94, 80.77, -20.91], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-98.26, -1.31, 33.83, -22.41, 80.94, -20.91], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-2.98, -50.44, 51.67, 36.38, 82.26, -21.35], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-85.16, -6.67, 6.15, -4.3, -79.62, -5.97], 100)
+                    time.sleep(0.15)
+                    mc.send_angles([-97.47, -1.4, -49.04, -27.94, 80.77, -20.91], 100)
+                else:
+                    break
     else:
         start = time.time()
         # COLOR = yellow
@@ -242,7 +291,7 @@ def happyDance(emotion):
             while time.time() - start_2 < minute:
                 x = 3
                 while x > 0:
-                    if time.time() - start < 228:
+                    if time.time() - start < song_duration:
                         time.sleep(0.15)
                         mc.send_angles([0, -15, -20, 20, 40, 50], 100)
                         time.sleep(0.15)

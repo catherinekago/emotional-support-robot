@@ -64,17 +64,17 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                if(Settings.status == StatusMessage.PLAYING) {
-                    communicateInput(StatusMessage.STOP);
+                if(Global.status == StatusMessage.PLAYING) {
+                    handleSuccessfulInput(StatusMessage.STOP);
                 } }
 
         });
 
         setUpFirestore();
-        Settings.status = StatusMessage.SNAKE;
-        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+        Global.status = StatusMessage.SNAKE;
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Global.status.name());
 
-        Settings.mainActivity = this;
+        Global.mainActivity = this;
 
         //Setup speech recognizer
         setupSpeechRecognizer();
@@ -158,19 +158,41 @@ public class MainActivity extends AppCompatActivity {
         utterance = utterance.toLowerCase(Locale.ROOT);
 
         // determine emotion for wakeword / awake
-        if (Settings.status == StatusMessage.WAKEWORD || Settings.status == StatusMessage.AWAKE) {
+        if (Global.status == StatusMessage.WAKEWORD || Global.status == StatusMessage.AWAKE) {
             determineEmotion(utterance);
 
             // determine song for happy state
-        } else if (Settings.status == StatusMessage.HAPPY) {
+        } else if (Global.status == StatusMessage.HAPPY) {
             determineSong(utterance);
             // determine cycle length for anxious state
-        } else if (Settings.status == StatusMessage.ANXIOUS) {
+        } else if (Global.status == StatusMessage.ANXIOUS) {
             determineCycleLength(utterance);
-        } else if (Settings.status == StatusMessage.PLAYING){
+
+            // ask user if they want to continue with the breathing exercise
+        } else if (Global.status == StatusMessage.ANXIOUS_END){
+            determineContinuation(utterance);
+        }
+        else if (Global.status == StatusMessage.PLAYING){
             listenForStop(utterance);
         }
 
+    }
+
+    /**
+     * Analyze utterance for next action after completed anti-anxiety sequence
+     * @param utterance the utterance that was provided via speech input
+     */
+    private void determineContinuation(String utterance) {
+        setListeningMode("mute", false);
+        if (utterance.contains("yes") || utterance.contains("continue")) {
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_CONTINUE));
+            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
+        } else if (utterance.contains("no") || utterance.contains("stop") || utterance.contains("done") || utterance.contains("good") ){
+            handleSuccessfulInput(StatusMessage.STOP);
+            performTTS(getResources().getString(R.string.STOP));
+        } else {
+            handleNoMatch();
+        }
     }
 
     /**
@@ -181,13 +203,13 @@ public class MainActivity extends AppCompatActivity {
         setListeningMode("mute", false);
 
         if (utterance.contains("short")) {
-            communicateInput(StatusMessage.ANXIOUS_SHORT);
+            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
             performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
         } else if (utterance.contains("medium")) {
-            communicateInput(StatusMessage.ANXIOUS_MEDIUM);
+            handleSuccessfulInput(StatusMessage.ANXIOUS_MEDIUM);
             performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
         } else if (utterance.contains("long")) {
-            communicateInput(StatusMessage.ANXIOUS_LONG);
+            handleSuccessfulInput(StatusMessage.ANXIOUS_LONG);
             performTTS(getResources().getString(R.string.PLAYING_ANXIOUS));
         }  else {
             handleNoMatch();
@@ -200,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void listenForStop(String utterance) {
         if (utterance.contains("stop")){
-            communicateInput(StatusMessage.STOP);
+            handleSuccessfulInput(StatusMessage.STOP);
             performTTS(getResources().getString(R.string.STOP));
         } else {
             handleNoMatch();
@@ -216,12 +238,12 @@ public class MainActivity extends AppCompatActivity {
         setListeningMode("mute", false);
 
         if (utterance.contains("walking") || utterance.contains("sunshine")){
-            Settings.song = R.raw.happy_244;
-            communicateInput(StatusMessage.HAPPY_244);
+            Global.song = R.raw.happy_244;
+            handleSuccessfulInput(StatusMessage.HAPPY_244);
             performTTS(getResources().getString(R.string.PLAYING_HAPPY_244));
         } else if (utterance.contains("sexy") || utterance.contains("know")) {
-            Settings.song = R.raw.happy_208;
-            communicateInput(StatusMessage.HAPPY_208);
+            Global.song = R.raw.happy_208;
+            handleSuccessfulInput(StatusMessage.HAPPY_208);
             performTTS(getResources().getString(R.string.PLAYING_HAPPY_208));
         } else {
             handleNoMatch();
@@ -236,21 +258,20 @@ public class MainActivity extends AppCompatActivity {
     public void performTTS(String text) {
         Log.d("E-S-R", "start tts");
         TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleep(4000);
         Log.d("E-S-R", "continue listening");
-        setListeningMode("request", false);
+        setListeningMode("request", true);
     }
 
     /**
      * Handle case where speech recognition does not return any matches
      */
     private void handleNoMatch() {
-        performTTS("Sorry, would you mind repeating that?");
-        //setListeningMode("request", true);
+       if(Global.status != StatusMessage.PLAYING){
+            performTTS("Sorry, would you mind repeating that?");
+      } else {
+           Log.d("E-S-R", "no match, but don't want to speak during song!");
+       }
 
     }
 
@@ -263,33 +284,38 @@ public class MainActivity extends AppCompatActivity {
     private void determineEmotion(String utterance) {
         // ANXIETY KEYWORDS
         String[] anxietyKeywords = new String [] {"anxious", "anxiety", "nervous", "breathe", "breathing"};
-        Boolean hasAnxietyKeywords = false;
-        for (int i = 0; i < anxietyKeywords.length; i++){
-            if (utterance.contains(anxietyKeywords[i])){
-                hasAnxietyKeywords = true;
-                break;
-            }
-        }
-        if (hasAnxietyKeywords){
-            communicateInput(StatusMessage.ANXIOUS);
-            provideBoxBreathingCycleOptions();
-        } else {
+        Boolean hasKeyword = checkForKeywords(anxietyKeywords);
 
+        if (hasKeyword){
+            handleSuccessfulInput(StatusMessage.ANXIOUS);
+            provideBoxBreathingCycleOptions();
+
+        } else {
+            // HAPPY KEYWORDS
             String[] happyKeywords = new String [] {"happy", "amazing", "awesome", "good", "great", "puppy", "copy", "hubby"};
-            Boolean hasHappyKeywords = false;
-            for (int i = 0; i < happyKeywords.length; i++){
-                if (utterance.contains(happyKeywords[i])){
-                    hasHappyKeywords = true;
-                    break;
-                }
-            }
-            if (hasHappyKeywords) {
-                communicateInput(StatusMessage.HAPPY);
+            hasKeyword = checkForKeywords(happyKeywords);
+
+            if (hasKeyword) {
+                handleSuccessfulInput(StatusMessage.HAPPY);
                 provideSongOptions();
             } else {
                 handleNoMatch();
             }
         }
+    }
+
+    /**
+     * Check array for keywords
+     * @param keyWords array of keywords
+     * @return true or false, depending on if at least one keyword has been detected
+     */
+    private Boolean checkForKeywords(String[] keyWords) {
+        for (int i = 0; i < keyWords.length; i++){
+            if (utterance.contains(keyWords[i])){
+                return true;
+            }
+        }
+        return false;
     }
 
     private void provideBoxBreathingCycleOptions() {
@@ -300,21 +326,28 @@ public class MainActivity extends AppCompatActivity {
      * When valid input has been identified, provide feedback on success and communicate new status to db
      * @param status the identified status
      */
-    private void communicateInput(StatusMessage status) {
-        // Stop music if playing
-        if (MediaPlayer.mediaPlayer != null){
-            MediaPlayer.mediaPlayer.release();
-        }
-        MediaPlayer.playSong(Settings.mainActivity, R.raw.ping);
-        Settings.status = status;
-        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Settings.status.name());
+    private void handleSuccessfulInput(StatusMessage status) {
+        MediaPlayer.provideSuccessFeedback();
+
+        Global.status = status;
+        FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Global.status.name());
         setListeningMode("mute", false);
+        sleep(500);
+    }
+
+    /**
+     * Sleep for specified amount of time
+     * @param milliseconds how long thread is put to sleep
+     */
+    private void sleep(int milliseconds) {
         try {
-            Thread.sleep(500);
+            Thread.sleep(milliseconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
+
+
 
     /**
      * Display the song options and start the speech recognizer so the user can choose a song.
@@ -374,48 +407,55 @@ public class MainActivity extends AppCompatActivity {
                     String messageBody = document.getDocument().getString("body");
                     if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
                         Log.d("E-S-R", "FIREBASE -- received " + messageBody);
-                        Settings.status =StatusMessage.valueOf(messageBody);
+                        Global.status =StatusMessage.valueOf(messageBody);
 
-                        switch (Settings.status){
+                        switch (Global.status){
                             case SNAKE:
-                                if(MediaPlayer.mediaPlayer != null){
-                                    MediaPlayer.mediaPlayer.release();
-                                }
+                                MediaPlayer.releaseMediaPlayer();
                                 setListeningMode("activation", false);
                                 break;
 
                             case WAKEWORD:
-                                setListeningMode("request", false);
+                                break;
 
                             case AWAKE:
-                                    setListeningMode("request", false);
+                                if(!TTS.ttsObject.isSpeaking()){
+                                    performTTS(getResources().getString(R.string.AWAKE));
+                                }
                                 break;
 
                             case PLAYING:
 
-                                if (Settings.song != 0){
-                                    MediaPlayer.playSong(Settings.mainActivity, Settings.song);
+                                if (Global.song != 0){
+                                    MediaPlayer.playSong(Global.mainActivity, Global.song);
                                     // Reset song variable
-                                    Settings.song = 0;
+                                    Global.song = 0;
                                 }
                                 setListeningMode("request", false);
                                 break;
 
+                            case ANXIOUS_END:
+                                askForAnotherBreathingCyle();
 
                             case STOP:
-                                // Stop music if playing
-                                if (MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()){
-                                    MediaPlayer.stopSong();
-                                }
-                                try {
-                                    Thread.sleep(500);
-                                } catch (InterruptedException interruptedException) { interruptedException.printStackTrace();}
+                                MediaPlayer.stopSong();
+                                sleep(500);
                                 performTTS(getResources().getString(R.string.STOP));
+                                break;
                         }
                     }
                 }
             }
         });
+    }
+
+    /**
+     * If the breathing cycle is completed, ask the user if they want to continue
+     */
+    private void askForAnotherBreathingCyle() {
+        setListeningMode("mute", false);
+        performTTS("Hey there. Do you want to continue breathing?");
+
     }
 
     /**
@@ -430,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
 
             // set app to listen for activation word
             if (mode.equals("activation")) {
-                Settings.porcupineManager.start();
+                Global.porcupineManager.start();
                 speechRecognizer.stopListening();
                 speechRecognizer.cancel();
 
@@ -438,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
                 // set app to listen for spoken requests
             } else if (mode.equals("request")) {
                 try {
-                    Settings.porcupineManager.stop();
+                    Global.porcupineManager.stop();
                 } catch (PorcupineException porcupineException) {
                     porcupineException.printStackTrace();
                 }
@@ -446,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
                 speechRecognizer.startListening(speechRecognizerIntent);
             } else if (mode.equals("mute")){
                 try {
-                    Settings.porcupineManager.stop();
+                    Global.porcupineManager.stop();
                 } catch (PorcupineException porcupineException) {
                     porcupineException.printStackTrace();
                 }
@@ -454,10 +494,7 @@ public class MainActivity extends AppCompatActivity {
                 speechRecognizer.cancel();
             }
             LISTEN_MODE = mode;
-        } else {
-            Log.d("E-S-R SpeechRec", "DENIED - MODE ALREADY ACTIVE");
         }
-
     }
 
 

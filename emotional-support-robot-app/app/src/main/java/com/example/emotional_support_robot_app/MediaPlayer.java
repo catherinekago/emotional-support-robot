@@ -11,9 +11,26 @@ public class MediaPlayer {
         mediaPlayer.start();
     }
 
-    public static void stopSong() {
-        mediaPlayer.stop();
-        mediaPlayer.release();
+    static void stopSong() {
+       if(MediaPlayer.mediaPlayer != null && MediaPlayer.mediaPlayer.isPlaying()) {
+           mediaPlayer.stop();
+           mediaPlayer.release();
+       }
+    }
+
+    static void releaseMediaPlayer(){
+        if(MediaPlayer.mediaPlayer != null){
+            MediaPlayer.mediaPlayer.release();
+        }
+    }
+
+    /**
+     * Provide feedback for successful input recognition
+     */
+    static void provideSuccessFeedback() {
+        // Stop music if playing
+        MediaPlayer.releaseMediaPlayer();
+        MediaPlayer.playSong(Global.mainActivity, R.raw.ping);
     }
 
 }

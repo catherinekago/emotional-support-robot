@@ -17,7 +17,7 @@ public class TTS {
         ttsMap = new HashMap<String, String>();
         ttsMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "UniqueID");
 
-        ttsObject = new TextToSpeech(Settings.mainActivity.getApplicationContext(), new TextToSpeech.OnInitListener() {
+        ttsObject = new TextToSpeech(Global.mainActivity.getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status==TextToSpeech.SUCCESS){

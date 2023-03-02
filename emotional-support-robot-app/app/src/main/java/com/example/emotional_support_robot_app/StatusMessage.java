@@ -10,13 +10,15 @@ public enum StatusMessage {
     HAPPY,
     HAPPY_244,
     HAPPY_208,
+    ANXIOUS,
 
     // from ROBOT
     AWAKE,
     PLAYING,
+    ANXIOUS_END,
 
 
-    ANXIOUS, // from BOTH
+    // from BOTH
     SNAKE
 
 }

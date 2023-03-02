@@ -14,11 +14,13 @@ public enum StatusMessage {
     HAPPY_244,
     HAPPY_208,
     ANXIOUS,
+    NOMATCH,
 
     // from ROBOT
     AWAKE,
     PLAYING,
     ANXIOUS_END,
+    NOMATCHRESPONSE,
 
 
     // from BOTH

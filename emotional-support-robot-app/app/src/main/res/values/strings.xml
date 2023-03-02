@@ -19,6 +19,8 @@
     <string name="PLAYING_HAPPY_208">Let\'s do a sexy dance, you sexy beast!</string>
     <string name="SONGS">Do you want to listen to: Walking on Sunshine? or: Sexy and I know it?</string>
     <string name="BOX_BREATHING_CYCLES">Let\'s do some box breathing. How long do you want to go? Short? Medium? Long</string>
-    <string name="PLAYING_ANXIOUS">Okay, let\'s start.</string>
+    <string name="PLAYING_ANXIOUS_SHORT">Okay, let\'s start your 1 minute box breathing session.</string>
+    <string name="PLAYING_ANXIOUS_MEDIUM">Okay, let\'s start your 3 minutes box breathing session..</string>
+    <string name="PLAYING_ANXIOUS_LONG">Okay, let\'s start your 10 minutes box breathing session.</string>
     <string name="PLAYING_ANXIOUS_CONTINUE">Okay! Let\'s do another cycle.</string>
 </resources>

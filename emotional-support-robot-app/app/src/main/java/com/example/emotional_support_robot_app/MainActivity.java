@@ -42,9 +42,13 @@ import java.util.Locale;
 
 import ai.picovoice.porcupine.PorcupineException;
 
-
+/**
+ * The MainActivity Class is the main control instance. It handles user input, generates tts output,
+ * and handles the Firebase updates.
+ */
 public class MainActivity extends AppCompatActivity {
 
+    //region $Variables
     private FirebaseFirestore firebase;
     private CollectionReference collectionRef;
 
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int SLEEP_SHORT = 3000;
 
     private TextView title;
+    //endregion
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +108,117 @@ public class MainActivity extends AppCompatActivity {
             checkPermission();
         }
     }
+
+    //region $Service
+
+    /**
+     * Start ForegroundService
+     */
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    public void startService() {
+        startService(new Intent(this, ForegroundService.class));
+    }
+    //endregion
+
+    //region $FirebaseCaseHandling
+
+    /**
+     * Setup the firestore listener to handle each incoming status accordingly.
+     */
+    private void setUpFirestore() {
+        // setup firebase connection
+        this.firebase = FirebaseFirestore.getInstance();
+        this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
+
+        //setup firebase event listener
+        collectionRef.addSnapshotListener(new EventListener() {
+
+            @SuppressLint("ResourceAsColor")
+            @Override
+            public void onEvent(@Nullable Object object, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
+                }
+
+                QuerySnapshot snapshots = (QuerySnapshot) object;
+
+                if (snapshots.getDocumentChanges().size() != 0) {
+                    DocumentChange document = snapshots.getDocumentChanges().get(0);
+                    String tag = document.getDocument().getId().split("_")[0];
+                    String messageBody = document.getDocument().getString("body");
+                    if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)) {
+                        Log.d("E-S-R", "FIREBASE -- received " + messageBody);
+                        if (!messageBody.equals(StatusMessage.NOMATCH.name()) && !messageBody.equals(StatusMessage.NOMATCHRESPONSE.name())) {
+                            Global.status = StatusMessage.valueOf(messageBody);
+
+
+                            switch (Global.status) {
+                                case SNAKE:
+                                    title.setText(R.string.title_snake);
+                                    title.setTypeface(null, Typeface.NORMAL);
+                                    title.setTextColor(getResources().getColor(R.color.grey));
+                                    releaseMediaPlayer();
+                                    setListeningMode("activation", false);
+                                    break;
+
+                                case WAKEWORD:
+                                    title.setTypeface(null, Typeface.BOLD);
+                                    title.setTextColor(getResources().getColor(R.color.teal_400));
+                                    break;
+
+                                case AWAKE:
+                                    title.setText("");
+                                    sleep(1500);
+                                    performTTS(getResources().getString(R.string.AWAKE), SLEEP_MEDIUM, true);
+                                    break;
+
+                                case PLAYING:
+                                    title.setTextColor(getResources().getColor(R.color.grey));
+                                    title.setTypeface(null, Typeface.NORMAL);
+                                    title.setText(R.string.title_stop);
+                                    if (Global.song != 0) {
+                                        playSong(Global.mainActivity, Global.song);
+                                        // Reset song variable
+                                        Global.song = 0;
+                                    }
+                                    setListeningMode("request", false);
+                                    break;
+
+                                case ANXIOUS_END:
+                                    askForAnotherBreathingCycle();
+                                    break;
+
+                                case STOP:
+                                    title.setTypeface(null, Typeface.BOLD);
+                                    title.setTextColor(getResources().getColor(R.color.teal_400));
+                                    stopSong();
+                                    performTTS(getResources().getString(R.string.STOP), SLEEP_SHORT, false);
+                                    break;
+                            }
+
+                            //} else {
+                            //    if (messageBody.equals(StatusMessage.NOMATCH.name())){
+                             //       LISTEN_MODE = "mute";
+                             //       setListeningMode(LISTEN_MODE, true);
+                             //   } else if (messageBody.equals(StatusMessage.NOMATCHRESPONSE.name())){
+                             //       LISTEN_MODE = "request";
+                             //       setListeningMode(LISTEN_MODE, true);
+                             //       playFeedbackSound(R.raw.success);
+                           // }
+
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    //endregion
+
+    //region $SpeechRecognition
+
+    // GENERAL -------------------------------------------------------------------------------------
 
     /**
      * Setup speech recognition object
@@ -147,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                 if(lastErrorTimeout + ERROR_TIMEOUT_LENGTH < currentTime){
                     lastErrorTimeout = currentTime;
                     setListeningMode(LISTEN_MODE, true);
-                    }
+                }
             }
 
             @Override
@@ -192,105 +308,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Analyze utterance for next action after completed anti-anxiety sequence
-     * @param utterance the utterance that was provided via speech input
-     */
-    private void determineContinuation(String utterance) {
-        setListeningMode("mute", false);
-        if (utterance.contains("yes") || utterance.contains("continue")) {
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_CONTINUE), SLEEP_SHORT,false);
-            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
-        } else if (utterance.contains("no") || utterance.contains("stop") || utterance.contains("done") || utterance.contains("good") ){
-            handleSuccessfulInput(StatusMessage.STOP);
-        } else {
-            handleNoMatch();
-        }
-    }
-
-    /**
-     * Analyze utterance for cycle length for box breathing
-     * @param utterance the utterance that was provided via speech input
-     */
-    private void determineCycleLength(String utterance) {
-        setListeningMode("mute", false);
-
-        if (utterance.contains("short")) {
-            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
-        } else if (utterance.contains("medium")) {
-            handleSuccessfulInput(StatusMessage.ANXIOUS_MEDIUM);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
-        } else if (utterance.contains("long")) {
-            handleSuccessfulInput(StatusMessage.ANXIOUS_LONG);
-            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS), SLEEP_SHORT, false);
-        }  else {
-            handleNoMatch();
-        }
-    }
-
-    /**
-     * Identify stop word for stopping the robot action
-     * @param utterance the utterance returned from the speech recognition
-     */
-    private void listenForStop(String utterance) {
-        if (utterance.contains("stop")){
-            handleSuccessfulInput(StatusMessage.STOP);
-        } else {
-            handleNoMatch();
-        }
-    }
-
-    /**
-     * Analyze the user utterance to identify if it includes keywords of the songs the user can
-     * choose from and select the matching song accordingly.
-     * @param utterance The utterance returned from the speech recognition
-     */
-    private void determineSong(String utterance) {
-        setListeningMode("mute", false);
-
-        if (utterance.contains("walking") || utterance.contains("sunshine")){
-            Global.song = R.raw.happy_244;
-            handleSuccessfulInput(StatusMessage.HAPPY_244);
-            performTTS(getResources().getString(R.string.PLAYING_HAPPY_244), SLEEP_SHORT, false);
-        } else if (utterance.contains("sexy") || utterance.contains("know")) {
-            Global.song = R.raw.happy_208;
-            handleSuccessfulInput(StatusMessage.HAPPY_208);
-            performTTS(getResources().getString(R.string.PLAYING_HAPPY_208), SLEEP_SHORT, false);
-        } else {
-            handleNoMatch();
-        }
-
-    }
-
-    /**
-     * Perform text to speech conversion and provide a timeout before restarting speech recognition
-     * @param text the text to be spoken
-     */
-    public void performTTS(String text, int sleepTime, Boolean prompt) {
-        Log.d("E-S-R", "start tts");
-        TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
-        sleep(sleepTime);
-        Log.d("E-S-R", "continue listening");
-        if (prompt) {
-            playFeedbackSound(R.raw.success);
-        }
-        setListeningMode("request", true);
-
-    }
-
-    /**
-     * Handle case where speech recognition does not return any matches
-     */
-    private void handleNoMatch() {
-       if(Global.status != StatusMessage.PLAYING){
-            performTTS("Sorry, would you mind repeating that?", SLEEP_SHORT, true);
-      } else {
-           Log.d("E-S-R", "no match, but don't want to speak during song!");
-       }
-
-    }
-
-    /**
      * Analyze the user utterance to identify if it includes keywords of the emotions the user can
      * choose from and handle the corresponding case accordingly.
      */
@@ -319,21 +336,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Check array for keywords
-     * @param keyWords array of keywords
-     * @return true or false, depending on if at least one keyword has been detected
+     * Handle case where speech recognition does not return any matches
      */
-    private Boolean checkForKeywords(String[] keyWords) {
-        for (String keyWord : keyWords) {
-            if (utterance.contains(keyWord)) {
-                return true;
-            }
+    private void handleNoMatch() {
+        if(Global.status != StatusMessage.PLAYING){
+            FirestoreHandler.pushToFirestore(this, firebase, collectionRef, StatusMessage.NOMATCH.name());
+            performTTS("Sorry, would you mind repeating that?", SLEEP_SHORT, true);
+        } else {
+            Log.d("E-S-R", "no match, but don't want to speak during song!");
         }
-        return false;
-    }
 
-    private void provideBoxBreathingCycleOptions() {
-        performTTS(getResources().getString(R.string.BOX_BREATHING_CYCLES), SLEEP_LONG, true);
     }
 
     /**
@@ -349,6 +361,144 @@ public class MainActivity extends AppCompatActivity {
         sleep(500);
     }
 
+    // ANXIOUS -------------------------------------------------------------------------------------
+
+    /**
+     * Analyze utterance for cycle length for box breathing
+     * @param utterance the utterance that was provided via speech input
+     */
+    private void determineCycleLength(String utterance) {
+        setListeningMode("mute", false);
+
+        if (utterance.contains("short")) {
+            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_SHORT), SLEEP_MEDIUM, false);
+        } else if (utterance.contains("medium")) {
+            handleSuccessfulInput(StatusMessage.ANXIOUS_MEDIUM);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_MEDIUM), SLEEP_MEDIUM, false);
+        } else if (utterance.contains("long")) {
+            handleSuccessfulInput(StatusMessage.ANXIOUS_LONG);
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_LONG), SLEEP_MEDIUM, false);
+        }  else {
+            handleNoMatch();
+        }
+    }
+
+    /**
+     * Analyze utterance for next action after completed anti-anxiety sequence
+     * @param utterance the utterance that was provided via speech input
+     */
+    private void determineContinuation(String utterance) {
+        setListeningMode("mute", false);
+        if (utterance.contains("yes") || utterance.contains("continue")) {
+            performTTS(getResources().getString(R.string.PLAYING_ANXIOUS_CONTINUE), SLEEP_SHORT,false);
+            handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
+        } else if (utterance.contains("no") || utterance.contains("stop") || utterance.contains("done") || utterance.contains("good") ){
+            handleSuccessfulInput(StatusMessage.STOP);
+        } else {
+            handleNoMatch();
+        }
+    }
+
+    // HAPPY ---------------------------------------------------------------------------------------
+
+    /**
+     * Analyze the user utterance to identify if it includes keywords of the songs the user can
+     * choose from and select the matching song accordingly.
+     * @param utterance The utterance returned from the speech recognition
+     */
+    private void determineSong(String utterance) {
+        setListeningMode("mute", false);
+
+        if (utterance.contains("walking") || utterance.contains("sunshine")){
+            Global.song = R.raw.happy_244;
+            handleSuccessfulInput(StatusMessage.HAPPY_244);
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_244), SLEEP_SHORT, false);
+        } else if (utterance.contains("sexy") || utterance.contains("know")) {
+            Global.song = R.raw.happy_208;
+            handleSuccessfulInput(StatusMessage.HAPPY_208);
+            performTTS(getResources().getString(R.string.PLAYING_HAPPY_208), SLEEP_SHORT, false);
+        } else {
+            handleNoMatch();
+        }
+
+    }
+
+    // STOP ----------------------------------------------------------------------------------------
+
+    /**
+     * Identify stop word for stopping the robot action
+     * @param utterance the utterance returned from the speech recognition
+     */
+    private void listenForStop(String utterance) {
+        if (utterance.contains("stop")){
+            handleSuccessfulInput(StatusMessage.STOP);
+        } else {
+            handleNoMatch();
+        }
+    }
+
+    //endregion
+
+    //region $TextToSpeech
+    /**
+     * Perform text to speech conversion and provide a timeout before restarting speech recognition
+     * @param text the text to be spoken
+     */
+    public void performTTS(String text, int sleepTime, Boolean prompt) {
+        Log.d("E-S-R", "start tts");
+        TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
+        sleep(sleepTime);
+        Log.d("E-S-R", "continue listening");
+        if (prompt) {
+            playFeedbackSound(R.raw.success);
+        }
+        setListeningMode("request", true);
+
+    }
+
+    /**
+     * Provide breathing cycle options
+     */
+    private void provideBoxBreathingCycleOptions() {
+        performTTS(getResources().getString(R.string.BOX_BREATHING_CYCLES), SLEEP_LONG, true);
+    }
+
+    /**
+     * If the breathing cycle is completed, ask the user if they want to continue
+     */
+    private void askForAnotherBreathingCycle() {
+        setListeningMode("mute", false);
+        performTTS("Hey there. Do you want to continue breathing?", SLEEP_SHORT, true);
+
+    }
+
+    /**
+     * Display the song options and start the speech recognizer so the user can choose a song.
+     */
+    private void provideSongOptions() {
+        // provide options, start listening
+        performTTS(getResources().getString(R.string.SONGS),  SLEEP_LONG, true);
+    }
+
+    //endregion
+
+    //region $Helpers
+
+    /**
+     * Check array for keywords
+     * @param keyWords array of keywords
+     * @return true or false, depending on if at least one keyword has been detected
+     */
+    private Boolean checkForKeywords(String[] keyWords) {
+        for (String keyWord : keyWords) {
+            if (utterance.contains(keyWord)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Sleep for specified amount of time
      * @param milliseconds how long thread is put to sleep
@@ -359,128 +509,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-
-
-    /**
-     * Display the song options and start the speech recognizer so the user can choose a song.
-     */
-    private void provideSongOptions() {
-        // provide options, start listening
-        performTTS(getResources().getString(R.string.SONGS),  SLEEP_LONG, true);
-    }
-
-    /**
-     * Check for record audio permissions for speech recognition.
-     */
-    private void checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},RecordAudioRequestCode);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == RecordAudioRequestCode && grantResults.length > 0 ){
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                Toast.makeText(this,"Permission Granted",Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // method for starting the service
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    public void startService() {
-        startService(new Intent(this, ForegroundService.class));
-    }
-
-    /**
-     * Setup the firestore listener to handle each incoming status accordingly.
-     */
-    private void setUpFirestore() {
-        // setup firebase connection
-        this.firebase = FirebaseFirestore.getInstance();
-        this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
-
-        //setup firebase event listener
-        collectionRef.addSnapshotListener(new EventListener() {
-
-            @SuppressLint("ResourceAsColor")
-            @Override
-            public void onEvent(@Nullable Object object, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Listen failed.", e);
-                    return;
-                }
-
-                QuerySnapshot snapshots = (QuerySnapshot) object;
-
-                if(snapshots.getDocumentChanges().size() != 0){
-                    DocumentChange document = snapshots.getDocumentChanges().get(0);
-                    String tag = document.getDocument().getId().split("_")[0];
-                    String messageBody = document.getDocument().getString("body");
-                    if (document.getType().equals(DocumentChange.Type.MODIFIED) || document.getType().equals(DocumentChange.Type.ADDED)){
-                        Log.d("E-S-R", "FIREBASE -- received " + messageBody);
-                        Global.status =StatusMessage.valueOf(messageBody);
-
-                        switch (Global.status){
-                            case SNAKE:
-                                title.setText(R.string.title_snake);
-                                title.setTypeface(null, Typeface.NORMAL);
-                                title.setTextColor(getResources().getColor(R.color.grey));
-                                releaseMediaPlayer();
-                                setListeningMode("activation", false);
-                                break;
-
-                            case WAKEWORD:
-                                title.setTypeface(null, Typeface.BOLD);
-                                title.setTextColor(getResources().getColor(R.color.teal_400));
-                                break;
-
-                            case AWAKE:
-                                title.setText("");
-                                sleep(1500);
-                                performTTS(getResources().getString(R.string.AWAKE), SLEEP_MEDIUM, true);
-                                break;
-
-                            case PLAYING:
-                                title.setTextColor(getResources().getColor(R.color.grey));
-                                title.setTypeface(null, Typeface.NORMAL);
-                                title.setText(R.string.title_stop);
-                                if (Global.song != 0){
-                                    playSong(Global.mainActivity, Global.song);
-                                    // Reset song variable
-                                    Global.song = 0;
-                                }
-                                setListeningMode("request", false);
-                                break;
-
-                            case ANXIOUS_END:
-                                askForAnotherBreathingCycle();
-                                break;
-
-                            case STOP:
-                                title.setTypeface(null, Typeface.BOLD);
-                                title.setTextColor(getResources().getColor(R.color.teal_400));
-                                stopSong();
-                                performTTS(getResources().getString(R.string.STOP), SLEEP_SHORT,  false);
-                                break;
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    
-    /**
-     * If the breathing cycle is completed, ask the user if they want to continue
-     */
-    private void askForAnotherBreathingCycle() {
-        setListeningMode("mute", false);
-        performTTS("Hey there. Do you want to continue breathing?", SLEEP_SHORT, true);
-
     }
 
     /**
@@ -522,5 +550,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //endregion
+
+    //region $Permissions
+    /**
+     * Check for record audio permissions for speech recognition.
+     */
+    private void checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},RecordAudioRequestCode);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == RecordAudioRequestCode && grantResults.length > 0 ){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                Toast.makeText(this,"Permission Granted",Toast.LENGTH_SHORT).show();
+        }
+    }
+    //endregion
 
 }

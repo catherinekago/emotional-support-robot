@@ -2,6 +2,8 @@ package com.example.emotional_support_robot_app;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import static com.example.emotional_support_robot_app.MediaPlayer.*;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -14,6 +16,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -22,6 +25,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.emotional_support_robot_app.service.ForegroundService;
@@ -54,12 +58,16 @@ public class MainActivity extends AppCompatActivity {
 
     private static String LISTEN_MODE;
 
+    private TextView title;
+
     @RequiresApi(api = Build.VERSION_CODES.R)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ConstraintLayout mainLayout = (ConstraintLayout) findViewById(R.id.mainContainer);
+        this.title = findViewById(R.id.Title);
+
+        ConstraintLayout mainLayout = findViewById(R.id.mainContainer);
         mainLayout.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -116,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onBeginningOfSpeech() {
-                Log.d("E-S-R SPEECH", "started speaking");
+                //Log.d("E-S-R SPEECH", "started speaking");
             }
 
             @Override public void onRmsChanged(float v) { }
@@ -151,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Analyze the user utterance depending on the current status. For "HAPPY", continue to song
      * selection, while for any other state (which should be AWAKE), determine the emotion.
-     * @param utterance
+     * @param utterance the utterance coming from voice recognition
      */
     @RequiresApi(api = Build.VERSION_CODES.R)
     private void handleUtterance(String utterance) {
@@ -159,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         // determine emotion for wakeword / awake
         if (Global.status == StatusMessage.WAKEWORD || Global.status == StatusMessage.AWAKE) {
-            determineEmotion(utterance);
+            determineEmotion();
 
             // determine song for happy state
         } else if (Global.status == StatusMessage.HAPPY) {
@@ -189,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
             handleSuccessfulInput(StatusMessage.ANXIOUS_SHORT);
         } else if (utterance.contains("no") || utterance.contains("stop") || utterance.contains("done") || utterance.contains("good") ){
             handleSuccessfulInput(StatusMessage.STOP);
-            performTTS(getResources().getString(R.string.STOP));
         } else {
             handleNoMatch();
         }
@@ -223,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
     private void listenForStop(String utterance) {
         if (utterance.contains("stop")){
             handleSuccessfulInput(StatusMessage.STOP);
-            performTTS(getResources().getString(R.string.STOP));
         } else {
             handleNoMatch();
         }
@@ -258,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
     public void performTTS(String text) {
         Log.d("E-S-R", "start tts");
         TTS.ttsObject.speak(text, TextToSpeech.QUEUE_FLUSH, TTS.ttsMap);
-        sleep(4000);
+        sleep(4500);
         Log.d("E-S-R", "continue listening");
         setListeningMode("request", true);
     }
@@ -278,10 +284,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Analyze the user utterance to identify if it includes keywords of the emotions the user can
      * choose from and handle the corresponding case accordingly.
-     * @param utterance The utterance returned from the speech recognition
      */
     @SuppressLint("ResourceAsColor")
-    private void determineEmotion(String utterance) {
+    private void determineEmotion() {
         // ANXIETY KEYWORDS
         String[] anxietyKeywords = new String [] {"anxious", "anxiety", "nervous", "breathe", "breathing"};
         Boolean hasKeyword = checkForKeywords(anxietyKeywords);
@@ -310,8 +315,8 @@ public class MainActivity extends AppCompatActivity {
      * @return true or false, depending on if at least one keyword has been detected
      */
     private Boolean checkForKeywords(String[] keyWords) {
-        for (int i = 0; i < keyWords.length; i++){
-            if (utterance.contains(keyWords[i])){
+        for (String keyWord : keyWords) {
+            if (utterance.contains(keyWord)) {
                 return true;
             }
         }
@@ -327,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
      * @param status the identified status
      */
     private void handleSuccessfulInput(StatusMessage status) {
-        MediaPlayer.provideSuccessFeedback();
+        provideSuccessFeedback();
 
         Global.status = status;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Global.status.name());
@@ -392,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
         //setup firebase event listener
         collectionRef.addSnapshotListener(new EventListener() {
 
+            @SuppressLint("ResourceAsColor")
             @Override
             public void onEvent(@Nullable Object object, @Nullable FirebaseFirestoreException e) {
                 if (e != null) {
@@ -411,23 +417,30 @@ public class MainActivity extends AppCompatActivity {
 
                         switch (Global.status){
                             case SNAKE:
-                                MediaPlayer.releaseMediaPlayer();
+                                title.setText(R.string.title_snake);
+                                title.setTypeface(null, Typeface.NORMAL);
+                                title.setTextColor(getResources().getColor(R.color.grey));
+                                releaseMediaPlayer();
                                 setListeningMode("activation", false);
                                 break;
 
                             case WAKEWORD:
+                                title.setTypeface(null, Typeface.BOLD);
+                                title.setTextColor(getResources().getColor(R.color.teal_200));
                                 break;
 
                             case AWAKE:
-                                if(!TTS.ttsObject.isSpeaking()){
-                                    performTTS(getResources().getString(R.string.AWAKE));
-                                }
+                                title.setText("");
+                                sleep(1500);
+                                performTTS(getResources().getString(R.string.AWAKE));
                                 break;
 
                             case PLAYING:
-
+                                title.setTextColor(getResources().getColor(R.color.grey));
+                                title.setTypeface(null, Typeface.NORMAL);
+                                title.setText(R.string.title_stop);
                                 if (Global.song != 0){
-                                    MediaPlayer.playSong(Global.mainActivity, Global.song);
+                                    playSong(Global.mainActivity, Global.song);
                                     // Reset song variable
                                     Global.song = 0;
                                 }
@@ -438,8 +451,9 @@ public class MainActivity extends AppCompatActivity {
                                 askForAnotherBreathingCyle();
 
                             case STOP:
-                                MediaPlayer.stopSong();
-                                sleep(500);
+                                title.setTypeface(null, Typeface.BOLD);
+                                title.setTextColor(getResources().getColor(R.color.teal_200));
+                                stopSong();
                                 performTTS(getResources().getString(R.string.STOP));
                                 break;
                         }

@@ -19,5 +19,15 @@
         tools:ignore="MissingClass,MissingConstraints"
         tools:layout_editor_absoluteX="0dp" />
 
+    <TextView
+        android:id="@+id/Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/RobotGif"
+        android:layout_marginTop="40dp"
+        android:text="Say HI ESRA to wake me up"
+        android:gravity="center"
+        />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

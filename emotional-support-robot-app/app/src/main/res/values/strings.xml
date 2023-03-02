@@ -5,13 +5,14 @@
     <string name="sender_robot">ROBOT</string>
 
 
-    <string name="loading_playing">Emotional Support Robot in action 🤖</string>
-    <string name="loading_stop">Stopping the robot ...</string>
+    <string name="title_snake">Say HEY ESRA to wake me up </string>
+    <string name="title_stop">Say STOP or tap anywhere to stop the action</string>
 
     <string name="happy_109_title">Walking on Sunshine</string>
     <string name="happy_128_title">Sexy and I Know It</string>
 
     <string name="AWAKE">Hi there! How are you feeling? Nervous or happy?</string>
+
 
     <string name="STOP">Going back to sleep ...</string>
     <string name="PLAYING_HAPPY_244">Let\'s do a happy dance, cutie pie!</string>

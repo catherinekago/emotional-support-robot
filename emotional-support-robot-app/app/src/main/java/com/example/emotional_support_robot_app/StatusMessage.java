@@ -1,5 +1,8 @@
 package com.example.emotional_support_robot_app;
 
+/**
+ * The StatusMessage enum holds all possible stati that are sent between app and robot
+ */
 public enum StatusMessage {
     // from APP
     WAKEWORD,

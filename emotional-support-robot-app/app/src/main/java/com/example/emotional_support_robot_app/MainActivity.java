@@ -3,7 +3,7 @@ package com.example.emotional_support_robot_app;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import static com.example.emotional_support_robot_app.MediaPlayer.*;
-import static com.example.emotional_support_robot_app.MediaPlayer.provideFeedback;
+import static com.example.emotional_support_robot_app.MediaPlayer.playFeedbackSound;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static String LISTEN_MODE;
 
-    private static final int SLEEP_LONG = 5000;
-    private static final int SLEEP_MEDIUM = 4000;
+    private static final int SLEEP_LONG = 5500;
+    private static final int SLEEP_MEDIUM = 3500;
     private static final int SLEEP_SHORT = 3000;
 
     private TextView title;
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         sleep(sleepTime);
         Log.d("E-S-R", "continue listening");
         if (prompt) {
-            provideFeedback(R.raw.success);
+            playFeedbackSound(R.raw.success);
         }
         setListeningMode("request", true);
 
@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
      * @param status the identified status
      */
     private void handleSuccessfulInput(StatusMessage status) {
-        provideFeedback(R.raw.success);
+        playFeedbackSound(R.raw.success);
 
         Global.status = status;
         FirestoreHandler.pushToFirestore(this, firebase, collectionRef, Global.status.name());
@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
                             case AWAKE:
                                 title.setText("");
                                 sleep(1500);
-                                performTTS(getResources().getString(R.string.AWAKE), SLEEP_SHORT, true);
+                                performTTS(getResources().getString(R.string.AWAKE), SLEEP_MEDIUM, true);
                                 break;
 
                             case PLAYING:
@@ -473,6 +473,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    
     /**
      * If the breathing cycle is completed, ask the user if they want to continue
      */

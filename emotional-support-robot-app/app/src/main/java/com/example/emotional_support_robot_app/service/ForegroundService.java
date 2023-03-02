@@ -26,6 +26,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import ai.picovoice.porcupine.PorcupineException;
 import ai.picovoice.porcupine.PorcupineManager;
 
+/**
+ * The ForegroundService class handles the app running in the background
+ */
 @RequiresApi(api = Build.VERSION_CODES.R)
 @SuppressLint("DefaultLocale")
 public class ForegroundService extends Service {
@@ -35,8 +38,6 @@ public class ForegroundService extends Service {
 
     private static final String NOTIFICATION_CHANNEL_ID = "example.permanence";
     private static final String channelName = "Background Service";
-
-    private String accessKey = "XtZfmmOD3T09VbD3Y7A/sV8B/gdKarnZQMSWK2YFSlDWIAljYsZNHA=="; // your Picovoice AccessKey
 
     public ForegroundService() {
     }
@@ -49,7 +50,9 @@ public class ForegroundService extends Service {
         this.collectionRef = firebase.collection(getResources().getString(R.string.collectionPath));
 
         try {
-            // Add own wake word
+
+            //  Picovoice AccessKey
+            String accessKey = "XtZfmmOD3T09VbD3Y7A/sV8B/gdKarnZQMSWK2YFSlDWIAljYsZNHA==";
             Global.porcupineManager = new PorcupineManager.Builder()
                     .setAccessKey(accessKey)
                     .setSensitivity(0.7f)

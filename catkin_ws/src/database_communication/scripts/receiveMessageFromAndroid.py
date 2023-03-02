@@ -54,12 +54,9 @@ function = "increment"
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
-    print("Initialize Robot")
     global firstSnake
     global bodyValue
     print("Snapshot:")
-
-    print(doc_snapshot[0])
     bodyFromSnapshot = doc_snapshot[0].get("body")
     print("retrieved body ", bodyFromSnapshot)
 
@@ -141,7 +138,8 @@ def wakeWordDetected(speed = 50):
 
 def emotionDetected(emotion):
     print("Received an emotion " + emotion)
-
+    ##active state
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
     # Reaction to emotion initiated here
     # HAPPY_BPM
     if emotion == "HAPPY_244" or emotion == "HAPPY_208":
@@ -152,8 +150,6 @@ def emotionDetected(emotion):
         # TODO Default case?
         print("Emotion: " + emotion)
 
-    ##active state
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
 
 docs_ref = db.collection(u'android-robot-communication').document("MESSAGE")
 
@@ -373,7 +369,7 @@ def happyDance(emotion):
         start = time.time()
         # COLOR = yellow
         mc.set_color(255, 140, 0)
-        song_duration = 178
+        song_duration = 183
         minute = 60
         while time.time() - start < song_duration:
             if stop:

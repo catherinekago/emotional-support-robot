@@ -80,10 +80,12 @@ def on_snapshot(doc_snapshot, changes, read_time):
         # activate robot --> wake word by app
         print("Body is wakeword")
         firstSnake = True
-        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
         wakeWordDetected()
-        print("Robot awakened")   
-    elif bodyValue == "HAPPY_109" or bodyValue == "HAPPY_128" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
+        print("Robot awakened") 
+    elif bodyValue == "NOMATCH":
+        headTilting()  
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "NOMATCHRESPONSE"})
+    elif bodyValue == "HAPPY_208" or bodyValue == "HAPPY_244" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
         emotionDetected(bodyValue)
     elif bodyValue == "STOP":
         stop = True
@@ -119,21 +121,29 @@ def pulsingLight():
     #docs_ref.on_snapshot(on_snapshot)
 
 
-def wakeWordDetected(speed = 50):
+def wakeWordDetected():
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
+    robotIsReady()
+
+
+def robotIsReady(speed = 50):
     ##listening state
+   # COLOR = white
+    mc.set_color(240, 240, 240) 
+    
     mc.send_angles([0, 0, 0, 0, 0, 0], speed)
-    time.sleep(1.1)
+    time.sleep(2)
 
-    # COLOR = white
-    mc.set_color(240, 240, 240)
+    headTilting()
 
+def headTilting():
     # listening routine
     mc.send_angles([0, 0, 0, -10, -20, 0], 50)
     time.sleep(0.5)
     mc.send_angles([0, 0, 0, 10, 20, 0], 50)
     time.sleep(0.5)
     mc.send_angles([0, 0, 0, 0, 0, 0], 50)
-    time.sleep(1)
+    time.sleep(0.5)
 
 
 def emotionDetected(emotion):
@@ -250,7 +260,7 @@ def startBreathingExercise(duration):
         print("Difference: " + str((stop - start).seconds))
 
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
-    wakeWordDetected(40)   
+    robotIsReady(30)
 
 def happyDance(emotion):
     if emotion == "HAPPY_208":

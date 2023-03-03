@@ -469,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void askForAnotherBreathingCycle() {
         setListeningMode("mute", false);
-        performTTS("Hey there. Do you want to continue breathing?", SLEEP_SHORT, true);
+        performTTS("Hey there. Do you want to continue the breathing exercise?", SLEEP_SHORT, true);
 
     }
 

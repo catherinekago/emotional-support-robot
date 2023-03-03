@@ -1,20 +1,3 @@
-
-To install rviz: 
-(https://docs.elephantrobotics.com/docs/gitbook-en/12-ApplicationBaseROS/12.1-ROS1/12.1.4-rivz%E4%BB%8B%E7%BB%8D%E5%8F%8A%E4%BD%BF%E7%94%A8/)
-
-sudo apt-get install ros-noetic-rviz
-
-To launch and run:
-Terminal 1: go into catkin_ws folder and type:
-roscore
-
-
-To show the mycobot robotor in rviz
-Terminal 1: roscore
-Terminal 2: roslaunch mycobot_280 test.launch
-
-(idk about the cobot version, though)
-
 # emotional-support-robot
 
 ## Starting the Robot
@@ -34,7 +17,7 @@ rosrun database_communication receiveMessageFromAndroid.py
 
 
 ### Starting the app
-You can either open the emotional-support-robot-app in Android studio, connect your phone via USB to the computer and run the code on your computer (which opens the app on your phone), or install the APK directly on your phone. You can find the APK in \emotional-support-robot-app\app\build\intermediates\apk\debug. 
+You can either open the emotional-support-robot-app in Android studio, connect your phone via USB to the computer and run the code on your computer (which opens the app on your phone), or install the APK directly on your phone. You can find the APK in \emotional-support-robot-app\app\build\intermediates\apk\debug. (APK version NOT TESTED).
 
 ### Requirements
 * Use smartphone in light mode (night mode not implemented, interface might not be readable)

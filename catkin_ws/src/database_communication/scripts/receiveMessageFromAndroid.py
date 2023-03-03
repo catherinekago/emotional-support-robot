@@ -392,7 +392,8 @@ def happyDance(emotion):
                     break
 
     print("Happy dance")
-    stopRobot()
+    if not stop:
+        stopRobot()
 
 
 ### HELPER FUNCTIONS ###

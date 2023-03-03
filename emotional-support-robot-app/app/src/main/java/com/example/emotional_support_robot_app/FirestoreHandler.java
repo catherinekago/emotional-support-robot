@@ -22,6 +22,7 @@ public class FirestoreHandler {
                     if (task.isSuccessful()) {
                         HashMap<String, String> message = new HashMap<>();
                         message.put("body", body);
+                        message.put("sender", "ANDROID");
                         firebase.collection(context.getResources().getString(R.string.collectionPath)).document("MESSAGE").set(message);
                     } else {
                         Log.d("E-S-R", "Error getting documents: ", task.getException());

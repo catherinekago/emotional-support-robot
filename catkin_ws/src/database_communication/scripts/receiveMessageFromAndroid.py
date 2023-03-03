@@ -51,40 +51,43 @@ def on_snapshot(doc_snapshot, changes, read_time):
     global firstSnake
     global bodyValue
     print("Snapshot:")
+    senderFromSnapshot = doc_snapshot[0].get("sender")
     bodyFromSnapshot = doc_snapshot[0].get("body")
+    print("retrieved sender ", senderFromSnapshot)
     print("retrieved body ", bodyFromSnapshot)
 
     # set global variable to trigger publishing received emotion
     bodyValue = bodyFromSnapshot
     print(bodyValue)
-    if bodyValue == "SNAKE":
-        # idle state == snake
-        print("snakey")
-        breakLoop = False
-        if firstSnake:
-            print("First Snake")
-            goToSnakeMode()
-            mc.stop()
-        # pulsingLight()
-    elif bodyValue == "WAKEWORD":
-        # activate robot --> wake word by app
-        print("Body is wakeword")
-        global stop
-        stop = False
-        firstSnake = True
-        wakeWordDetected()
-        print("Robot awakened") 
-    elif bodyValue == "NOMATCH":
-        headTilting()  
-        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "NOMATCHRESPONSE"})
-    elif bodyValue == "HAPPY_208" or bodyValue == "HAPPY_244" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
-        stop = False
-        emotionDetected(bodyValue)
-    elif bodyValue == "STOP":
-        breakLoop = True
-        stop = True
-        firstSnake = True
-        stopRobot()
+    if senderFromSnapshot == "ANDROID":
+        if bodyValue == "SNAKE":
+            # idle state == snake
+            print("snakey")
+            breakLoop = False
+            if firstSnake:
+                print("First Snake")
+                goToSnakeMode()
+                mc.stop()
+            # pulsingLight()
+        elif bodyValue == "WAKEWORD":
+            # activate robot --> wake word by app
+            print("Body is wakeword")
+            global stop
+            stop = False
+            firstSnake = True
+            wakeWordDetected()
+            print("Robot awakened") 
+        elif bodyValue == "NOMATCH":
+            headTilting()  
+            db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "NOMATCHRESPONSE", 'sender': "ROBOT"})
+        elif bodyValue == "HAPPY_208" or bodyValue == "HAPPY_244" or bodyValue == "ANXIOUS_SHORT" or bodyValue == "ANXIOUS_MEDIUM" or bodyValue == "ANXIOUS_LONG":
+            stop = False
+            emotionDetected(bodyValue)
+        elif bodyValue == "STOP":
+            breakLoop = True
+            stop = True
+            firstSnake = True
+            stopRobot()
 
     callback_done.set()
 
@@ -116,7 +119,7 @@ def pulsingLight():
 
 
 def wakeWordDetected():
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE", 'sender': "ROBOT"})
     robotIsReady()
 
 
@@ -145,7 +148,7 @@ def emotionDetected(emotion):
     ##active state
     # Reaction to emotion initiated here
     # HAPPY_BPM
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "PLAYING", 'sender': "ROBOT"})
     
     if emotion == "HAPPY_244" or emotion == "HAPPY_208": 
         happyDance(emotion)
@@ -246,7 +249,7 @@ def startBreathingExercise(duration):
         docs_ref.on_snapshot(on_snapshot)
         """
     if not stop:
-        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END"})
+        db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "ANXIOUS_END", 'sender': "ROBOT"})
         robotIsReady(30)
 
 def happyDance(emotion):
@@ -448,7 +451,7 @@ def happyDance(emotion):
 ### HELPER FUNCTIONS ###
 
 def updateBodyToSnake():
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE", 'sender': "ROBOT"})
 
 
 def goToSnakeMode(speed=50):
@@ -459,7 +462,7 @@ def goToSnakeMode(speed=50):
 
 
 def stopRobot(sleepTime=0):
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE"})
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE", 'sender': "ROBOT"})
     global stop
     stop = True
     time.sleep(sleepTime)

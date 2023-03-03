@@ -25,7 +25,7 @@ Hints:
 You have to be connected to the robot via USB and if you get a "permission denied" error, run:
 sudo chmod 666 /dev/ttyACM0
 
-When you succeed, set the robot to WIFI-mode (via its display), connect to the "PEM-HRI" WIFI and run:
+When you succeed, set the robot to WIFI-mode (via its display), connect to the "PEM-HRI" WIFI, in receiveMessageFromAndroid.py in line 34 replace the IP-address with your robot's address and run:
 rosrun database_communication receiveMessageFromAndroid.py
 
 

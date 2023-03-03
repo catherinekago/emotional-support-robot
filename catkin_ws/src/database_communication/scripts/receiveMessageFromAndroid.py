@@ -207,7 +207,6 @@ def startBreathingExercise(duration):
         print("up right")
         start = datetime.now()
         print(start.strftime("Hold start: %H:%M:%S"))
-        mc.send_angle()
         mc.sync_send_angles([30, 45, 90, -130, -30, 0], 10)
         stop2 = datetime.now()
         print(stop2.strftime("Hold stop: %H:%M:%S"))

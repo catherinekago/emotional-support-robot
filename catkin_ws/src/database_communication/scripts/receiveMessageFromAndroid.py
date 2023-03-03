@@ -92,57 +92,6 @@ def on_snapshot(doc_snapshot, changes, read_time):
     callback_done.set()
 
 
-def pulsingLight():
-    # TODO calls on snapshot too often!
-    print("pulsating start")
-    global intensity
-    global function
-    global firstSnake
-
-    firstSnake = False
-
-    mc.set_color(25 * intensity, 25 * intensity, 25 * intensity)
-
-    if function == "increment":
-        intensity += 1
-    elif function == "decrement":
-        intensity -= 1
-    if intensity == 5:
-        function = "decrement"
-    elif intensity == 0:
-        function = "increment"
-
-    time.sleep(0.3)
-
-    print("pulsating stop")
-    # docs_ref.on_snapshot(on_snapshot)
-
-
-def wakeWordDetected():
-    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE", 'sender': "ROBOT"})
-    robotIsReady()
-
-
-def robotIsReady(speed = 50):
-    ##listening state
-   # COLOR = white
-    mc.set_color(240, 240, 240) 
-    
-    mc.send_angles([0, 0, 0, 0, 0, 0], speed)
-    time.sleep(2)
-
-    headTilting()
-
-def headTilting():
-    # listening routine
-    mc.send_angles([0, 0, 0, -10, -20, 0], 50)
-    time.sleep(0.5)
-    mc.send_angles([0, 0, 0, 10, 20, 0], 50)
-    time.sleep(0.5)
-    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
-    time.sleep(0.5)
-
-
 def emotionDetected(emotion):
     print("Received an emotion " + emotion)
     ##active state
@@ -155,7 +104,6 @@ def emotionDetected(emotion):
     elif emotion == "ANXIOUS_SHORT" or emotion == "ANXIOUS_MEDIUM" or emotion == "ANXIOUS_LONG":
         startBreathingExercise(emotion)
     else:
-        # TODO Default case?
         print("Emotion: " + emotion)
 
 
@@ -197,7 +145,6 @@ def startBreathingExercise(duration):
         mc.set_color(0, 120, 255)
         mc.set_color(0, 180, 255)
         mc.set_color(0, 240, 255)
-        # V2: from blue to green
         stop2 = datetime.now()
         print(stop2.strftime("Stop breathing in: %H:%M:%S"))
         print("Difference: " + str((stop2 - start).seconds))
@@ -449,6 +396,53 @@ def happyDance(emotion):
 
 
 ### HELPER FUNCTIONS ###
+def pulsingLight():
+    print("pulsating start")
+    global intensity
+    global function
+    global firstSnake
+
+    firstSnake = False
+
+    mc.set_color(25 * intensity, 25 * intensity, 25 * intensity)
+
+    if function == "increment":
+        intensity += 1
+    elif function == "decrement":
+        intensity -= 1
+    if intensity == 5:
+        function = "decrement"
+    elif intensity == 0:
+        function = "increment"
+
+    time.sleep(0.3)
+
+    print("pulsating stop")
+
+
+def wakeWordDetected():
+    db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "AWAKE", 'sender': "ROBOT"})
+    robotIsReady()
+
+
+def robotIsReady(speed = 50):
+    ##listening state
+   # COLOR = white
+    mc.set_color(240, 240, 240) 
+    
+    mc.send_angles([0, 0, 0, 0, 0, 0], speed)
+    time.sleep(2)
+
+    headTilting()
+
+def headTilting():
+    # listening routine
+    mc.send_angles([0, 0, 0, -10, -20, 0], 50)
+    time.sleep(0.5)
+    mc.send_angles([0, 0, 0, 10, 20, 0], 50)
+    time.sleep(0.5)
+    mc.send_angles([0, 0, 0, 0, 0, 0], 50)
+    time.sleep(0.5)
 
 def updateBodyToSnake():
     db.collection(u'android-robot-communication').document("MESSAGE").update({u'body': "SNAKE", 'sender': "ROBOT"})
